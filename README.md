@@ -44,6 +44,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 ### Confirmed working
 * Yamaha RX-V671
 * Yamaha RX-V673
+* Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
 
 ## Installation
 YTuner is a standalone application and in most cases it does not require additional services, frameworks, packages, virtual machines, libraries or tools to run properly (except optional OpenSSL libraries).
