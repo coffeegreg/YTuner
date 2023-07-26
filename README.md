@@ -92,7 +92,7 @@ You can also use your favorite DNS server like `dnsmasq`.
 ### Application configuration
 YTuner is configured by simple `ytuner.ini` file.  
 This file has the following capabilities:
-https://github.com/coffeegreg/YTuner/blob/f9d5ff1b8e449dc9d22fc2aabf45d118b15db455/cfg/ytuner.ini#L1-L77
+https://github.com/coffeegreg/YTuner/blob/f8e9da3d63c3b2f61c27045d579e10f01cf05a05/cfg/ytuner.ini#L1-L88
 
 ### Custom stations
 You can enable support for the stations list local file. Two types of files are supported:
