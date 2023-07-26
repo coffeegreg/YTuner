@@ -78,6 +78,7 @@ const
   ICON_CACHE_PATH = 'cache';
 
 var
+  WebServerIPAddress: string;
   WebServerPort: integer = 80;
   IconSize: integer = 200;
   IconCache: boolean = False;
@@ -780,9 +781,9 @@ begin
       Name:=Station.MSName;
       Description:='My favorite "'+Station.MSName+'"';
       URL:=StripHttps(Station.MSURL);
-      Icon:=PATH_HTTP+AReq.Host+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+Station.MSID;
+      Icon:=PATH_HTTP+MyIPAddress+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+Station.MSID;
       Genre:=Category;
-      Bookmark:=PATH_HTTP+AReq.Host+'/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP+'?'+PATH_PARAM_ID+'='+Station.MSID+'&'+PATH_FAVACTION+'='+PATH_FAVACTION_ADD;
+      Bookmark:=PATH_HTTP+MyIPAddress+'/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP+'?'+PATH_PARAM_ID+'='+Station.MSID+'&'+PATH_FAVACTION+'='+PATH_FAVACTION_ADD;
     end;
 end;
 
@@ -799,8 +800,8 @@ begin
       Location:=RBSCountry;
       Mime:=RBSCodec.ToUpper;
       Bitrate:=RBSBitrate;
-      Icon:=PATH_HTTP+AReq.Host+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+UID;
-      Bookmark:=PATH_HTTP+AReq.Host+'/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP+'?'+PATH_PARAM_ID+'='+UID+'&'+PATH_FAVACTION+'='+PATH_FAVACTION_ADD;
+      Icon:=PATH_HTTP+MyIPAddress+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+UID;
+      Bookmark:=PATH_HTTP+MyIPAddress+'/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP+'?'+PATH_PARAM_ID+'='+UID+'&'+PATH_FAVACTION+'='+PATH_FAVACTION_ADD;
     end;
 end;
 
@@ -810,7 +811,7 @@ begin
   with Result do
     begin
       Title:=ATitle;
-      Destination:=PATH_HTTP+MyIPAddress+':'+WebServerPort.ToString+'/'+ADestination;
+      Destination:=PATH_HTTP+MyIPAddress+'/'+ADestination;
       ItemCount:=AItemCount;
     end;
 end;

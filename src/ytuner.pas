@@ -47,14 +47,15 @@ var
 begin
   with TIniFile.Create(MyAppPath+'ytuner.ini') do
     try
-      MyIPAddress:=GetLocalIP(ReadString(INI_CONFIGURATION,'IPAddress',MyIPAddress));
-      WebServerPort:=ReadInteger(INI_CONFIGURATION,'WebServerPort',WebServerPort);
-      UseSSL:=ReadBool(INI_CONFIGURATION,'UseSSL',True);
       try
-        LogType:=TLogType(ReadInteger(INI_CONFIGURATION,'MessageInfoLevel',1));
+        LogType:=TLogType(ReadInteger(INI_CONFIGURATION,'MessageInfoLevel',3));
       except
-        LogType:=ltInfo;
+        LogType:=ltError;
       end;
+      if ReadString(INI_CONFIGURATION,'INIVersion','')<>INI_VERSION then
+        Logging(ltWarning, 'You are running out of INI file or your ytuner.ini file is outdated! Some features may not work properly! Check https://github.com/coffeegreg/YTuner for the correct INI file for your version of YTuner');
+      MyIPAddress:=GetLocalIP(ReadString(INI_CONFIGURATION,'IPAddress',MyIPAddress));
+      UseSSL:=ReadBool(INI_CONFIGURATION,'UseSSL',True);
       IconSize:=ReadInteger(INI_CONFIGURATION,'IconSize',IconSize);
       IconCache:=ReadBool(INI_CONFIGURATION,'IconCache',True);
       LToken:=ReadString(INI_CONFIGURATION,'MyToken',MyToken);
@@ -80,7 +81,11 @@ begin
       CommonBookmark:=ReadBool(INI_BOOKMARK,'CommonBookmark',False);
       BookmarkStationsLimit:=ReadInteger(INI_BOOKMARK,'BookmarkStationsLimit',BookmarkStationsLimit);
 
+      WebServerIPAddress:=GetLocalIP(ReadString(INI_WEBSERVER,'WebServerIPAddress',MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress));
+      WebServerPort:=ReadInteger(INI_WEBSERVER,'WebServerPort',WebServerPort);
+
       DNSServerEnabled:=ReadBool(INI_DNSSERVER,'Enable',True);
+      DNSServerIPAddress:=GetLocalIP(ReadString(INI_DNSSERVER,'DNSServerIPAddress',MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress));
       DNSServerPort:=ReadInteger(INI_DNSSERVER,'DNSServerPort',DNSServerPort);
       InterceptDNs:=ReadString(INI_DNSSERVER,'InterceptDNs',InterceptDNs);
       DNSServers:=ReadString(INI_DNSSERVER,'DNSServers',DNSServers);
@@ -101,8 +106,8 @@ begin
   {$ENDIF DEBUG}
 
   MyAppPath:=Application.Location;
+  Writeln(APP_NAME+' v'+APP_VERSION+' '+APP_COPYRIGHT);
   ReadINIConfiguration;
-  writeln(APP_NAME+' '+APP_VERSION+' '+APP_COPYRIGHT);
   Logging(ltInfo, 'Starting services..');
   if UseSSL then InitSSLInterface;
   if RadioBrowserEnabled then
@@ -127,15 +132,17 @@ begin
       end;
 
   if DNSServerEnabled and StartDNSServer then
-    Logging(ltInfo, 'DNS server listening on: '+MyIPAddress+':'+DNSServerPort.ToString);
+    Logging(ltInfo, 'DNS server listening on: '+DNSServerIPAddress+':'+DNSServerPort.ToString);
 
-  Application.Address:=MyIPAddress;
+  Application.Address:=WebServerIPAddress;
   Application.Port:=WebServerPort;
   Application.LookupHostNames:=False;
   RegisterServerRoutes;
   Application.Threaded:=True;
   Application.Initialize;
-  Logging(ltInfo, 'Web server listening on: '+MyIPAddress+':'+WebServerPort.ToString);
+  Logging(ltInfo, 'Web server listening on: '+WebServerIPAddress+':'+WebServerPort.ToString);
+  if MyIPAddress <> WebServerIPAddress then
+    Logging(ltInfo, 'AVRs HTTP requests IP target: '+MyIPAddress);
   Application.Run;
 end.
 

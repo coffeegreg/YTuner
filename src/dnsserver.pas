@@ -19,6 +19,7 @@ type
 
 var
   IdDNSServerProxy: TIdDNSServerProxy;
+  DNSServerIPAddress: string;
   DNSServerPort: integer = 53;
   DNSServerEnabled: boolean = True;
   DNSServers: string = '8.8.8.8,9.9.9.9';
@@ -57,7 +58,7 @@ begin
       end;
     with IdDNSServerProxy.IdDNSServer.UDPTunnel.Bindings.Add do
       begin
-        IP:=MyIPAddress;
+        IP:=DNSServerIPAddress;
         IPVersion:=Id_IPv4;
       end;
     IdDNSServerProxy.IdDNSServer.Active:=True;
