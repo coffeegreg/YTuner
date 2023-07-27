@@ -42,9 +42,13 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 ***Please test YTuner with your AVR and give me your feedback***. 
 
 ### Confirmed working
-* Yamaha RX-V671
-* Yamaha RX-V673
-* Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
+- Yamaha
+  * Yamaha RX-V671
+  * Yamaha RX-V673
+- Marantz
+  * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
+- Denon
+  * Denon AVR-X3300W (Tested by [citronalco](https://github.com/citronalco). Thank you.)
 
 ## Installation
 YTuner is a standalone application and in most cases it does not require additional services, frameworks, packages, virtual machines, libraries or tools to run properly (except optional OpenSSL libraries).
