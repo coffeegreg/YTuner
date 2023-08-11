@@ -24,7 +24,7 @@ or any others powered by cross-build abilities of [Free Pascal Compiler](https:/
 YTuner supports :
 * Custom stations list files (aka MyStations) : YAML files (YCast compatible) or INI files.
 * Great [Radio-browser.info](https://www.radio-browser.info) functionality.
-* AVR bookmarks. Single bookmark for many AVRs or dedicated bookmark for each AVR (if you own more then one) with support of "add" and "del" operations sended from AVR devices. 
+* AVR bookmarks. Single bookmark for many AVRs or dedicated bookmark for each AVR (if you own more then one) with support of "add" and "del" operations sent from AVR devices. 
 * Easy application configuration with ini file. 
 * Optional SSL support for YTuner HTTPS web request.
 * Radio stations logo images conversion/resize on the fly with couple of supported image formats (JPG,PNG,GIF,TIFF-optional) 
