@@ -71,12 +71,22 @@ Now, you should have directory with following files :
 
 ### OpenSSL
 If you want to use SSL to support YTuner HTTPS web request you have to get OpenSSL libraries.
-* Most linux/*nix systems install OpenSSL by default. Otherwise, use your favorite package manager to get OpenSSL libraries or download them from [Github](https://github.com/openssl/openssl) or visit [OpenSSL Wiki](https://wiki.openssl.org/index.php/Binaries) for binary distributions source.   
-* Windows users can download them from [Github](https://github.com/openssl/openssl) (follow [NOTES-WINDOWS.md](https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md) instructions) or visit [OpenSSL Wiki](https://wiki.openssl.org/index.php/Binaries) for binary distributions source.
+- Most linux/*nix systems install OpenSSL by default. Otherwise, use your favorite package manager to get OpenSSL libraries or download them from [Github](https://github.com/openssl/openssl) or visit [OpenSSL Wiki](https://wiki.openssl.org/index.php/Binaries) for binary distributions source.   
+- Windows users can download them from [Github](https://github.com/openssl/openssl) (follow [NOTES-WINDOWS.md](https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md) instructions) or visit [OpenSSL Wiki](https://wiki.openssl.org/index.php/Binaries) for binary distributions source.
 Make sure to get/build the correct version of the OpenSSL libraries with the correct bit length for your OS. 32-bit libraries are needed if you chose to use the 32-bit version of YTuner or 64-bit for the AMD64/x86_64 version of YTuner.
-Finally, you should have 2 files: `ssleay32.dll` and `libeay32.dll` and place them in your `ytuner` directory or anywhere in your system `PATH`.
+Finally, you should have 2 files:
+  * OpenSSL 1.0.2 and earlier:
+     + `ssleay32.dll` (or `libssl32.dll`) and `libeay32.dll`
+  * OpenSSL 1.1.0 and above:
+     + 64-bit: `libssl-1_1-x64.dll` and `libcrypto-1_1-x64.dll`
+     + 32-bit: `libssl-1_1.dll` and `libcrypto-1_1.dll`
+  * OpenSSL 3.0.0 and above:
+     + 64-bit: `libssl-3-x64.dll` and `libcrypto-3-x64.dll`
+     + 32-bit: `libssl-3.dll` and `libcrypto-3.dll`
 
+and place them in your `ytuner` directory or anywhere in your system `PATH`.
 Make sure your system has valid CA certificates.
+>Tip: The YTuner should work with LibreSSL libraries as well.
 
 ## Configuration
 
