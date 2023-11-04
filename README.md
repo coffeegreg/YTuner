@@ -15,7 +15,7 @@ Now, with YTuner you can enjoy similar functionality at full speed of ultra ligh
 
 and with selected CPU architecture:
 
-* Intel i386, AMD64/x86_64, ARM, PowerPC/PowerPC64, SPARC/SPARC64
+* Intel i386, AMD64/x86_64, ARM/ARM64, PowerPC/PowerPC64, SPARC/SPARC64
 
 or any others powered by cross-build abilities of [Free Pascal Compiler](https://www.freepascal.org/).
 
