@@ -15,7 +15,7 @@ Now, with YTuner you can enjoy similar functionality at full speed of ultra ligh
 
 and with selected CPU architecture:
 
-* Intel i386, AMD64/x86_64, ARM, PowerPC/PowerPC64, SPARC/SPARC64
+* Intel i386, AMD64/x86_64, ARM/ARM64, PowerPC/PowerPC64, SPARC/SPARC64
 
 or any others powered by cross-build abilities of [Free Pascal Compiler](https://www.freepascal.org/).
 
@@ -45,6 +45,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 - Yamaha
   * Yamaha RX-V671
   * Yamaha RX-V673
+  * Yamaha DSP-Z7 (Tested by Beatrice / [TheBossME](https://github.com/TheBossME). Thank you.)
 - Marantz
   * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
 - Denon
