@@ -65,7 +65,7 @@ Now, you should have directory with following files :
  |-- ytuner (or ytuner.exe for Windows)
  |-- ytuner.ini (important config file)
  |-- stations.ini  (if you want to use a ini file with your favorite radio stations) 
- |-- stations.yaml (if you want to use a yaml file with your favorite radio stations)
+ |-- stations.yaml (if you want to use a yaml/yml file with your favorite radio stations)
 ```
  Do not forget to add execute privileges to `ytuner` on linux/*nix systems with a command like `chmod +x ytuner`.  
 
@@ -121,7 +121,7 @@ You can enable support for the stations list local file. Two types of files are 
   Station three name=http://url-of-station-three|http://url-of-station-three-logo
   Station four name=http://url-of-station-four|http://url-of-station-four-logo
 ``` 
-* .yaml file :
+* .yaml / .yml file :
 ```
 Category one name:
   Station one name: http://url-of-station-one|http://url-of-station-one-logo
