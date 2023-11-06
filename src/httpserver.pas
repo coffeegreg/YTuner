@@ -314,7 +314,7 @@ var
   LLastElement: integer = 0;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
-  LStation.Category:=AReq.RouteParams[PATH_CATEGORY];
+  LStation.Category:=HTTPDecode(AReq.RouteParams[PATH_CATEGORY]);
   while (LCategoryIdx<Length(MyStations)-1) and (MyStations[LCategoryIdx].MSCategory.ToLower<>LStation.Category.ToLower) do
     Inc(LCategoryIdx);
   if MyStations[LCategoryIdx].MSCategory.ToLower=LStation.Category.ToLower then
@@ -470,13 +470,16 @@ begin
                     ServerResponse(HTTP_CODE_OK,ctPNG,ARes,LStream);
                     {$ENDIF}
                     {$ENDIF}
-                    if not DirectoryExists(MyAppPath+ICON_CACHE_PATH) then CreateDir(MyAppPath+ICON_CACHE_PATH);
-                    try
-                      LStream.SaveToFile(MyAppPath+ICON_CACHE_PATH+PathDelim+LImageFile);
-                    except
-                      on E : Exception do
-                        Logging(ltError, LImageFile+MSG_FILE_SAVE_ERROR+' ('+E.Message+')');
-                    end;
+                    if IconCache then
+                      begin
+                        if not DirectoryExists(MyAppPath+ICON_CACHE_PATH) then CreateDir(MyAppPath+ICON_CACHE_PATH);
+                        try
+                          LStream.SaveToFile(MyAppPath+ICON_CACHE_PATH+PathDelim+LImageFile);
+                        except
+                          on E : Exception do
+                            Logging(ltError, LImageFile+MSG_FILE_SAVE_ERROR+' ('+E.Message+')');
+                        end;
+                      end;
                   finally
                     FreeAndNil(LImageWriter);
                   end;

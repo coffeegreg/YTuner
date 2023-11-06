@@ -116,7 +116,7 @@ begin
   if MyStationsEnabled then
     case ExtractFileExt(MyStationsFileName) of
       '.ini': ReadMyStationsINIFile(MyAppPath+MyStationsFileName);
-      '.yaml': ReadMyStationsYAMLFile(MyAppPath+MyStationsFileName);
+      '.yaml','.yml': ReadMyStationsYAMLFile(MyAppPath+MyStationsFileName);
     end;
 
   if RBUUIDsCacheAutoRefresh and (RBUUIDsCacheTTL>0) then
