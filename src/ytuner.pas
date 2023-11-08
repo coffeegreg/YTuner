@@ -17,7 +17,7 @@ uses
   cthreads, cmem,
   {$ENDIF}
   LazUTF8,
-  SysUtils, IniFiles,
+  SysUtils, IniFiles, StrUtils,
   fphttpapp,
   {$IFDEF USESSL}
   openssl, opensslsockets,
@@ -25,20 +25,62 @@ uses
   regexpr,
   my_stations, vtuner, httpserver, radiobrowser, common, bookmark, dnsserver, threadtimer;
 
-type
-  TRBStationsAutoRefresh = class(TObject)
-    RefreshTimer: TThreadTimer;
-    procedure RefreshTimerOnTimer(Sender: TObject);
-  end;
 
-function GetRBStationsThread(p:pointer):ptrint;
+function GetRBStationsThread(AP:Pointer):PtrInt;
 begin
   GetRBStations;
 end;
 
-procedure TRBStationsAutoRefresh.RefreshTimerOnTimer(Sender: TObject);
+procedure RBStationsRefreshOnTimer(Sender: TObject);
 begin
   BeginThread(@GetRBStationsThread);
+end;
+
+function ReadMyStations: boolean;
+begin
+  case IndexStr(ExtractFileExt(MyAppPath+MyStationsFileName),MY_STATIONS_EXT) of
+    0: Result:=ReadMyStationsINIFile(MyAppPath+MyStationsFileName);
+    1,2: Result:=ReadMyStationsYAMLFile(MyAppPath+MyStationsFileName);
+  else
+    Result:=False;
+  end;
+end;
+
+function CheckMyStationsThread(AP:Pointer):PtrInt;
+var
+  LMyStationsFileAge: LongInt;
+  LMyStationsFileCRC32: LongWord;
+begin
+  try
+    if (AnsiMatchText(ExtractFileExt(MyAppPath+MyStationsFileName),MY_STATIONS_EXT)) then
+      begin
+        LMyStationsFileAge:=FileAge(MyAppPath+MyStationsFileName);
+        if MyStationsFileAge<>LMyStationsFileAge then
+          begin
+            LMyStationsFileCRC32:=CalcFileCRC32(MyAppPath+MyStationsFileName);
+            if MyStationsFileCRC32<>LMyStationsFileCRC32 then
+              begin
+                if (MyStationsFileAge<>0) and (MyStationsFileCRC32<>0) then
+                  Logging(ltInfo, '"My Stations" file has been changed. Refreshing..');
+                if ReadMyStations then
+                  begin
+                    MyStationsFileAge:=LMyStationsFileAge;
+                    MyStationsFileCRC32:=LMyStationsFileCRC32;
+                  end;
+              end;
+          end;
+      end
+    else
+      Logging(ltError, 'Unsupported "My Stations" file format.');
+  except
+    on E:Exception do
+      Logging(ltError, 'CheckMyStationsThread Error: '+E.Message);
+  end;
+end;
+
+procedure MyStationsRefreshOnTimer(Sender: TObject);
+begin
+  BeginThread(@CheckMyStationsThread);
 end;
 
 procedure ReadINIConfiguration;
@@ -69,6 +111,7 @@ begin
         end;
       MyStationsEnabled:=ReadBool(INI_MYSTATIONS,'Enable',True);
       MyStationsFileName:=ReadString(INI_MYSTATIONS,'MyStationsFile',MyStationsFileName);
+      MyStationsAutoRefreshPeriod:=ReadInteger(INI_MYSTATIONS,'MyStationsAutoRefreshPeriod',0);
 
       RadioBrowserEnabled:=ReadBool(INI_RADIOBROWSER,'Enable',True);
       RBAPIURL:=ReadString(INI_RADIOBROWSER,'RBAPIURL',RBAPIURL);
@@ -114,21 +157,22 @@ begin
     if not LoadRBStationsUUIDs then
       BeginThread(@GetRBStationsThread);
   if MyStationsEnabled then
-    case ExtractFileExt(MyStationsFileName) of
-      '.ini': ReadMyStationsINIFile(MyAppPath+MyStationsFileName);
-      '.yaml','.yml': ReadMyStationsYAMLFile(MyAppPath+MyStationsFileName);
-    end;
+    CheckMyStationsThread(nil);
 
-  if RBUUIDsCacheAutoRefresh and (RBUUIDsCacheTTL>0) then
-    with TRBStationsAutoRefresh.Create do
+  if RadioBrowserEnabled and RBUUIDsCacheAutoRefresh and (RBUUIDsCacheTTL>0) then
+    with TThreadTimer.Create('YTunerRB') do
       begin
-        RefreshTimer:=TThreadTimer.Create;
-        with RefreshTimer do
-          begin
-            Interval:=RBUUIDsCacheTTL*3600000;
-            OnTimer:=@RefreshTimerOnTimer;
-            StartTimer;
-          end;
+        Interval:=RBUUIDsCacheTTL*3600000;
+        OnTimer:=@RBStationsRefreshOnTimer;
+        StartTimer;
+      end;
+
+  if MyStationsEnabled and (MyStationsAutoRefreshPeriod>0) then
+    with TThreadTimer.Create('YTunerMS') do
+      begin
+        Interval:=MyStationsAutoRefreshPeriod*60000;
+        OnTimer:=@MyStationsRefreshOnTimer;
+        StartTimer;
       end;
 
   if DNSServerEnabled and StartDNSServer then

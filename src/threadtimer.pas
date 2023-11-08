@@ -7,16 +7,16 @@ unit threadtimer;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, syncobjs;
 
 type
-  TOnTimer = procedure(Sender: TObject) of object;
+  TOnTimer = procedure(Sender: TObject);
 
   TThreadTimer = class(TThread)
   private
     FInterval: Cardinal;
     FOnTimer: TOnTimer;
-    FEvent: PRTLEvent;
+    FEvent: TEventObject;
     FEnabled: Boolean;
     procedure DoOnTimer;
   protected
@@ -27,16 +27,16 @@ type
     property Enabled: Boolean read FEnabled write FEnabled;
     procedure StopTimer;
     procedure StartTimer;
-    constructor Create;
+    constructor Create(AName: string);
     destructor Destroy; override;
   end;
 
 implementation
 
-constructor TThreadTimer.Create;
+constructor TThreadTimer.Create(AName: string);
 begin
   inherited Create(True);  // Suspended = True
-  FEvent:=RTLEventCreate;
+  FEvent:=TEventObject.Create(nil,True,False,AName);
   FInterval:=1000;
   FreeOnTerminate:=True;
   FEnabled:=False;
@@ -44,7 +44,7 @@ end;
 
 destructor TThreadTimer.Destroy;
 begin
-  RTLeventdestroy(FEvent);
+  FEvent.Free;
   inherited Destroy;
 end;
 
@@ -58,12 +58,12 @@ procedure TThreadTimer.Execute;
 begin
   while not Terminated do
     begin
-      RTLeventWaitFor(FEvent,FInterval);
+      FEvent.WaitFor(FInterval);
       if Terminated then
         Break;
       if FEnabled then
         DoOnTimer;
-      RTLeventResetEvent(FEvent);
+      FEvent.ResetEvent;
     end;
 end;
 

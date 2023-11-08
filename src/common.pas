@@ -7,7 +7,7 @@ unit common;
 interface
 
 uses
-  SysUtils, IdStack, IdGlobal;
+  Classes, SysUtils, IdStack, IdGlobal, crc;
 
 
 type
@@ -16,9 +16,9 @@ type
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.0.1';
+  APP_VERSION = '1.0.2';
   APP_COPYRIGHT = 'Copyright (c) 2023 Greg P. (https://github.com/coffeegreg)';
-  INI_VERSION = '1.0.1';
+  INI_VERSION = '1.0.2';
 
   YTUNER_USER_AGENT = 'YTuner';
   YTUNER_HOST = 'ytunerhost';
@@ -64,6 +64,7 @@ var
 procedure Logging(ALogType: TLogType; ALogMessage: string);
 function GetLocalIP(ADefaultIP: string): string;
 function StripHttps(URL: string):string;
+function CalcFileCRC32(AFileName: string): LongInt;
 
 implementation
 
@@ -140,6 +141,21 @@ end;
 function StripHttps(URL: string):string;
 begin
   StripHttps:=StringReplace(URL,'https://','http://',[]);
+end;
+
+function CalcFileCRC32(AFileName: string): LongInt;
+var
+  Buffer : TBytes;
+begin
+  Result:=CRC32(0,nil,0);
+  with TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone) do
+    try
+      SetLength(Buffer, Size);
+      Read(Buffer,Size);
+      Result:=CRC32(Result,@Buffer[0],Size);
+    finally
+      Free;
+    end;
 end;
 
 end.

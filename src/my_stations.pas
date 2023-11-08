@@ -13,6 +13,7 @@ uses
 const
   MY_STATIONS_PREFIX = 'MS';
   PATH_MY_STATIONS = 'my_stations';
+  MY_STATIONS_EXT : Array Of AnsiString = ('.ini','.yaml','.yml');
 
 type
   TMyStation = record
@@ -32,12 +33,15 @@ type
              end;
 
 function GetMyStationByID(AID: string): TStation;
-procedure ReadMyStationsINIFile(AMyStationsFileName: string);
-procedure ReadMyStationsYAMLFile(AMyStationsFileName: string);
+function ReadMyStationsINIFile(AMyStationsFileName: string): boolean;
+function ReadMyStationsYAMLFile(AMyStationsFileName: string): boolean;
 
 var
   MyStationsEnabled: boolean = True;
   MyStationsFileName: string = 'stations.ini';
+  MyStationsAutoRefreshPeriod: integer = 0;
+  MyStationsFileAge: LongInt = 0;
+  MyStationsFileCRC32: LongWord = 0;
   MyStations: TMyStationsGroup;
 
 implementation
@@ -57,18 +61,18 @@ begin
           end;
 end;
 
-procedure ReadMyStationsINIFile(AMyStationsFileName: string);
+function ReadMyStationsINIFile(AMyStationsFileName: string): boolean;
 var
   LStr: TStrings;
   i,j: integer;
   LMyStationsCount: integer = 0;
-  LMyStationsLoaded: boolean = True;
   LMSIniTmpValue: string;
 begin
+  Result:=False;
   LStr:=TStringList.Create;
   try
     with TIniFile.Create(AMyStationsFileName) do
-      begin
+      try
         try
           ReadSections(LStr);
           SetLength(MyStations,LStr.Count);
@@ -94,22 +98,23 @@ begin
                     end;
               LMyStationsCount:=LMyStationsCount+LStr.Count;
             end;
+          Result:=(LMyStationsCount>0);
         except
-          LMyStationsLoaded:=False;
+          Result:=False;
         end;
+      finally
         Free;
       end;
   finally
     LStr.Free;
-    if LMyStationsLoaded then
+    if Result then
       Logging(ltInfo, MSG_SUCCESSFULLY_LOADED+IntToStr(LMyStationsCount)+' my '+MSG_STATIONS)
     else
       Logging(ltError, 'INI'+MSG_FILE_LOAD_ERROR)
   end;
-
 end;
 
-procedure ReadMyStationsYAMLFile(AMyStationsFileName: string);
+function ReadMyStationsYAMLFile(AMyStationsFileName: string): boolean;
 const
   LSeparators: array of string = (': ','|');
 var
@@ -118,11 +123,11 @@ var
   j: integer = 0;
   c: integer = 0;
   LMyStationsCount: integer = 0;
-  LMyStationsLoaded: boolean = True;
 begin
+  Result:=False;
   LStationsFileContent:=TStringList.Create;
   with LStationsFileContent do
-    begin
+    try
       try
         LStationsFileContent.LoadFromFile(AMyStationsFileName);
         while i<LStationsFileContent.Count do
@@ -150,11 +155,13 @@ begin
                 end;
             i:=i+1;
           end;
+        Result:=(LMyStationsCount>0);
       except
-        LMyStationsLoaded:=False;
+        Result:=False;
       end;
+    finally
       Free;
-      if LMyStationsLoaded then
+      if Result then
         Logging(ltInfo, MSG_SUCCESSFULLY_LOADED+IntToStr(LMyStationsCount)+' my '+MSG_STATIONS)
       else
         Logging(ltError, 'YAML'+MSG_FILE_LOAD_ERROR)
