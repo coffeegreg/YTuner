@@ -92,6 +92,11 @@ Make sure your system has valid CA certificates.
 ## Configuration
 
 Your YTuner machine and AVR(s) have to have internet access. Make sure your firewall is properly configured if necessary.
+### AVR
+Set all DNS servers on your AVR config to your YTuner machine IP address.
+
+### Router
+Make sure that your YTuner machine is assigned a static IPv4 address.
 
 ### Web server
 Regardless of what operating system you use, you need to make sure that TCP port 80 is not being used by another application.
