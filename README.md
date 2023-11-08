@@ -98,12 +98,12 @@ Set all DNS servers on your AVR config to your YTuner machine IP address.
 ### Router
 Make sure that your YTuner machine is assigned a static IPv4 address.
 
-### Web server
+### YTuner Web Server
 Regardless of what operating system you use, you need to make sure that TCP port 80 is not being used by another application.
 YTuner has a built-in multi-threaded web server that listens on TCP port 80 so you don't have to worry about its configuration and performance.
 >Tip: In some special cases, it may be necessary to change the default TCP port 80 to another. You can do this by editing the YTuner ini file. See [Application configuration](README.md#application-configuration) section below.
 
-### DNS server
+### YTuner DNS Server
 YTuner has a  built-in multi-threaded DNS proxy server that listens on UDP port 53. This feature is optional and you can simple disable it and/or configure by editing configuration .ini file `ytuner.ini` (See [Application configuration](README.md#application-configuration) section below).
 You can also use your favorite DNS server like `dnsmasq`.  
 ***Most important is to point `*.vtuner.com` domain to you YTuner machine and set all DNS servers on your AVR config to your YTuner machine IP address.***  
