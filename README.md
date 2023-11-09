@@ -139,9 +139,11 @@ Category two name:
 YTuner can convert and resize on the fly logo image from JPEG, PNG, GIFF and TIFF (optionaly) to JPEG (default) or PNG format. 
 >Tip: URLs with logo station images are optional.
 
-### Bookmarks
-If you AVR support bookmark you can enable and use this YTuner functionality.  
-You can configure YTuner to use one common bookmark file (bookmark.xml) for all your AVR devices (if you have more then one) or each AVR will own its own bookmark file. 
+### Bookmark
+What is the `Bookmark` ? `Bookmark` is what is mentioned in the AVR user's manual. `Bookmark` is operated only from the AVR device. When you listen to a new station you can decide to put it into the `Bookmark` or want to remove it from it. All stations added in this way are visible in the `Bookmark` submenu of the AVR receiver.
+
+If you AVR support `Bookmark` you can enable and use this YTuner functionality.
+You can configure YTuner to use one common bookmark file (`bookmark.xml`) for all your AVR devices (if you have more then one) or each AVR will own its own bookmark file. 
 See [Application configuration](README.md#application-configuration) section above.
 
 ## Running the application
