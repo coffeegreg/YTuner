@@ -6,7 +6,7 @@ YTuner is a simple project inspired by [YCast](https://github.com/milaq/YCast) b
 Designed to replace vTuner internet radio service and dedicated to all users of AVRs made by Yamaha, Denon, Onkyo, Marantz and others with built-in vTuner support.
 If you own one (or even more) of the vTuner-enabled AVRs mentioned above and want to enjoy free internet radio stations on your device as before, and be sure that your device's streaming service won't suddenly end, you should consider using YTuner.
 
-### Why?
+### Why
 
 YCast is a great project, but my goal was to run a similar service on a very low-spec platform where python along with packages turned out to be too heavy and too slow.
 Now, with YTuner you can enjoy similar functionality at full speed of ultra lightweight native app on operating systems such as::
@@ -136,7 +136,7 @@ Category two name:
   Station three name: http://url-of-station-three|http://url-of-station-three-logo
   Station four name: http://url-of-station-four|http://url-of-station-four-logo
 ```
-You can use only one format and file. YTuner can convert and resize on the fly logo image from JPEG, PNG, GIFF and TIFF (optionaly) to JPEG (default) or PNG format. 
+YTuner can convert and resize on the fly logo image from JPEG, PNG, GIFF and TIFF (optionaly) to JPEG (default) or PNG format. 
 >Tip: URLs with logo station images are optional.
 
 ### Bookmarks
