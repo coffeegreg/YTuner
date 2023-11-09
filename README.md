@@ -9,7 +9,7 @@ If you own one (or even more) of the vTuner-enabled AVRs mentioned above and wan
 ### Why
 
 YCast is a great project, but my goal was to run a similar service on a very low-spec platform where python along with packages turned out to be too heavy and too slow.
-Now, with YTuner you can enjoy similar functionality at full speed of ultra lightweight native app on operating systems such as::
+Now, with YTuner you can enjoy similar functionality at full speed of ultra lightweight native app on operating systems such as:
 
 * Windows, Linux, macOS, BSD, Solaris, Raspberry Pi OS 
 
@@ -173,7 +173,7 @@ You can use [CodeTyphon Studio](https://www.pilotlogic.com) or [Lazarus Free Pas
 Use the latest versions of these IDE. Relevant project files are included.
 
 ### Dependencies
-YTuner use [Indy - Internet Direct](https://github.com/IndySockets/Indy) library.
+YTuner uses [Indy - Internet Direct](https://github.com/IndySockets/Indy) library to build its own binary files. Of course, YTuner binaries no longer need any additional libraries beyond the optional OpenSSL.
 >Important: Use the latest version of Indy library to build YTuner.
 
 ## License
