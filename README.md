@@ -126,11 +126,12 @@ At this moment you can use it to shut down YTuner service only.
 ### Application configuration
 YTuner is configured by simple `ytuner.ini` file.  
 This file has the following capabilities:
-https://github.com/coffeegreg/YTuner/blob/b0aadbdfc452e3f56a4aaf6d6df3fb54a583eea0/cfg/ytuner.ini#L1-L91
+https://github.com/coffeegreg/YTuner/blob/76eb487cb339d00b475a4c26529ac0fce589594a/cfg/ytuner.ini#L1-L127
 
 YTuner's filtering and sorting functionality can be oriented by AVR device.
 You can decide about it with `CommonAVRini` setting of `ytuner.ini`.
 Common AVR config file `avr.ini` or other AVRs dedicated config files have the following capabilities:
+https://github.com/coffeegreg/YTuner/blob/273e48b94f4c1b3bd33077905ae1f4fa8ca3ee95/cfg/example-avr.ini#L1-L78
 
 Please read the descriptions in the `.ini` files carefully.
 ### Custom stations
