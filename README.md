@@ -25,15 +25,17 @@ YTuner supports :
 * Custom stations list files (aka MyStations) : YAML files (YCast compatible) or INI files.
 * Great [Radio-browser.info](https://www.radio-browser.info) functionality.
 * AVR bookmarks. Single bookmark for many AVRs or dedicated bookmark for each AVR (if you own more then one) with support of "add" and "del" operations sent from AVR devices. 
-* Easy application configuration with ini file. 
+* Easy application configuration with ini files. 
 * Optional SSL support for YTuner HTTPS web request.
 * Radio stations logo images conversion/resize on the fly with couple of supported image formats (JPG,PNG,GIF,TIFF-optional) 
-* Radio stations logo images optional cache storage.
-* Radio browser UUID cache with optional auto refresh.
+* Radio stations logo images optional cache.
+* Radio browser UUIDs, data structures and stations cache (based on files or RAM storage) with optional auto refresh.
+* Radio browser advanced filtering and sorting (single config for many AVRs or dedicated configs for each AVR (if you own more then one))
 
 YTuner also has build in :
-* Web server to support AVR requests.
-* Optional DNS proxy server to intercept vtuner.com related DNS queries and others if needed.
+* Web service to support AVR requests.
+* Optional DNS proxy service to intercept vtuner.com related DNS queries and others if needed.
+* Maintenance service.
 
 ## Supported devices
 ***Theoretically, YTuner should work with most AVRs that support vTuner.***  
@@ -58,14 +60,21 @@ You can download from [Releases](https://github.com/coffeegreg/YTuner/releases) 
 After download (or build) save and extract files into prepared directory with granted read/write/execute privileges.
 Remember that the credentials who will run YTuner must also have permission to open TCP port 80 and optionally UDP 53 (note below).
 
-Now, you should have directory with following files :
+Now, you should have directory with some of the following subdirectories and files :
 
 ```
 -- ytuner
+ |-- config (subdir for config files) 
+   |-- stations.ini  (if you want to use a ini file with your favorite radio stations) 
+   |-- stations.yaml (if you want to use a yaml/yml file with your favorite radio stations)
+   |-- avr.ini (common configuration file for all your AVRs)
+   |-- bookmark.xml (common bookmark file for all your AVRs - only if one of your AVR support bookmark)
+   |-- ...... (AVRs dedicated bookmark and config files)
+ |-- cache (subdir for cache files)
+   |-- rbuuids.txt (Radio browser UUIDs cache file)
+   |-- ...... (other cache files)
  |-- ytuner (or ytuner.exe for Windows)
- |-- ytuner.ini (important config file)
- |-- stations.ini  (if you want to use a ini file with your favorite radio stations) 
- |-- stations.yaml (if you want to use a yaml/yml file with your favorite radio stations)
+ |-- ytuner.ini (YTuner important config file)
 ```
  Do not forget to add execute privileges to `ytuner` on linux/*nix systems with a command like `chmod +x ytuner`.  
 
@@ -98,22 +107,32 @@ Set all DNS servers on your AVR config to your YTuner machine IP address.
 ### Router
 Make sure that your YTuner machine is assigned a static IPv4 address.
 
-### YTuner Web Server
+### YTuner Web Service
 Regardless of what operating system you use, you need to make sure that TCP port 80 is not being used by another application.
 YTuner has a built-in multi-threaded web server that listens on TCP port 80 so you don't have to worry about its configuration and performance.
 >Tip: In some special cases, it may be necessary to change the default TCP port 80 to another. You can do this by editing the YTuner ini file. See [Application configuration](README.md#application-configuration) section below.
 
-### YTuner DNS Server
-YTuner has a  built-in multi-threaded DNS proxy server that listens on UDP port 53. This feature is optional and you can simple disable it and/or configure by editing configuration .ini file `ytuner.ini` (See [Application configuration](README.md#application-configuration) section below).
+### YTuner DNS Service
+YTuner has a built-in multi-threaded DNS proxy server that listens on UDP port 53. This feature is optional and you can simple disable it and/or configure by editing configuration .ini file `ytuner.ini` (See [Application configuration](README.md#application-configuration) section below).
 You can also use your favorite DNS server like `dnsmasq`.  
 ***Most important is to point `*.vtuner.com` domain to you YTuner machine and set all DNS servers on your AVR config to your YTuner machine IP address.***  
 >Tip: In some special cases, it may be necessary to change the default UDP port 53 to another. You can do this by editing the YTuner ini file. See [Application configuration](README.md#application-configuration) section below.
+
+### YTuner Maintenance Service
+YTuner has a built-in maintenance service for diagnostic and future goals. 
+At this moment you can use it to shut down YTuner service only.
+>Tip: In most cases, you will not need this functionality. See [Application configuration](README.md#application-configuration) section below.
 
 ### Application configuration
 YTuner is configured by simple `ytuner.ini` file.  
 This file has the following capabilities:
 https://github.com/coffeegreg/YTuner/blob/b0aadbdfc452e3f56a4aaf6d6df3fb54a583eea0/cfg/ytuner.ini#L1-L91
 
+YTuner's filtering and sorting functionality can be oriented by AVR device.
+You can decide about it with `CommonAVRini` setting of `ytuner.ini`.
+Common AVR config file `avr.ini` or other AVRs dedicated config files have the following capabilities:
+
+Please read the descriptions in the `.ini` files carefully.
 ### Custom stations
 You can enable support for the stations list local file. Two types of files are supported:
 * .ini file :

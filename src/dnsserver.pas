@@ -17,6 +17,9 @@ type
     procedure IdDNS_UDPServerDoAfterQuery(ABinding: TIdSocketHandle; ADNSHeader: TDNSHeader; var QueryResult: TIdBytes; var ResultCode: string; Query : TIdBytes);
   end;
 
+const
+  DNS_SERVICE = 'DNS Service';
+
 var
   IdDNSServerProxy: TIdDNSServerProxy;
   DNSServerIPAddress: string;
@@ -38,12 +41,11 @@ implementation
 function StartDNSServer:boolean;
 begin
   Result:=True;
+  IdDNSServerProxy:=TIdDNSServerProxy.Create;
+  IdDNSServerProxy.IdDNSServer:=TIdDNSServer.Create(nil);
   try
-    IdDNSServerProxy:=TIdDNSServerProxy.Create;
-    IdDNSServerProxy.IdDNSServer:=TIdDNSServer.Create(nil);
     with IdDNSServerProxy.IdDNSServer do
       begin
-        Active:=False;
         TCPACLActive:=False;
         ServerType:=stPrimary;
       end;
@@ -67,6 +69,10 @@ begin
       begin
         Result:=False;
         Logging(ltError, 'DNS Server error: '+E.Message);
+        if Assigned(IdDNSServerProxy.IdDNSServer) then
+          IdDNSServerProxy.IdDNSServer.Free;
+        if Assigned(IdDNSServerProxy) then
+          IdDNSServerProxy.Free;
       end;
   end;
 end;

@@ -1,0 +1,78 @@
+[Configuration]
+; Please do not change this value!
+INIVersion=1.0.0
+
+; Use one value of set [https,http,all-as-http] or leave blank.
+; https= select only stations which have https url.
+; http = select only stations that do stream unencrypted with http.
+; all-as-http = select all stations (http+https) and strip "s" from "https" URLs and use "http" instead.
+; Leave blank to avoid filtering with this setting. Default: all-as-http.
+Protocol=all-as-http
+
+[RadioBrowser Filtering]
+; This setting works like a whitelist.
+; Use values of "name" field of http://all.api.radio-browser.info/json/tags separated by ";".
+; Use additional "{empty}" value to allow stations with empty "tags" field to be visible in other filtered station lists too.
+; Use wildcard character "*" to advanced "tags" filtering ("*" means any number of any characters).
+; Leave blank to avoid filtering with this setting. Default: blank.
+AllowedTags=*dance*;*medieval
+
+; This setting works like a blacklist and complements the "AllowedTags" whitelist effect.
+; Use values of "name" field of http://all.api.radio-browser.info/json/tags separated by ";".
+; Use additional "{empty}" value to allow stations with empty "tags" field to be visible in other filtered station lists too.
+; Use wildcard character "*" to advanced "tags" filtering ("*" means any number of any characters).
+; Leave blank to avoid filtering with this setting. Default: blank.
+NotAllowedTags=*hall
+
+; This setting works like a whitelist.
+; Use values of "name" field of http://all.api.radio-browser.info/json/countries separated by ";".
+; Use additional "{empty}" value to allow stations with empty "country" field to be visible in other filtered station lists too.
+; Use wildcard character "*" to advanced "country" filtering ("*" means any number of any characters).
+; Leave blank to avoid filtering with this setting. Default: blank.
+AllowedCountries=Poland;Germany;*Britain*;Spain
+
+; This setting works like a whitelist.
+; Use values of "name" field of http://all.api.radio-browser.info/json/languages separated by ";".
+; Use additional "{empty}" value to allow stations with empty "language" field to be visible in other filtered station lists too.
+; Use wildcard character "*" to advanced "language" filtering ("*" means any number of any characters).
+; Leave blank to avoid filtering with this setting. Default: blank.
+AllowedLanguages=polish;*english*;german;*spanish,spain;*español*;españa;{empty}
+
+; This setting works like a whitelist.
+; Use values of "name" field of http://all.api.radio-browser.info/json/codecs separated by ";".
+; Use additional "{empty}" value to allow stations with empty "codec" field to be visible in other filtered station lists too.
+; Use wildcard character "*" to advanced "codec" filtering ("*" means any number of any characters).
+; Leave blank to avoid filtering with this setting. Default: blank.
+AllowedCodecs=
+
+; This setting works like a blacklist.
+; Use values of "name" field of http://all.api.radio-browser.info/json/codecs separated by ";".
+; Use additional "{empty}" value to allow stations with empty "codec" field to be visible in other filtered station lists too.
+; Use wildcard character "*" to advanced "codec" filtering ("*" means any number of any characters).
+; Leave blank to avoid filtering with this setting. Default: blank.
+NotAllowedCodecs=AAC*
+
+; This setting works like a whitelist.
+; Use values of kbytes/sec. Leave blank to avoid filtering with this setting. Default: blank.
+BitrateMax=
+
+; This setting works like a blacklist.
+; Filter out stations with names contains specific strings. Use ";" to separate entered values;
+; Useful when the station does not have a "Codec" field specified, but the station name contains information like "AAC" or others indicates a codec.
+; Leave blank to avoid filtering with this setting. Default: blank.
+NotAllowedInName=aac
+
+; This setting works like a blacklist.
+; Filter out stations whose URL ends like extensions of specific files. Use ";" to separate entered values;
+; Useful when the station does not have a "Codec" field specified, but the URL ending in the form of e.g. ".aac" or others indicates a codec.
+; Leave blank to avoid filtering with this setting. Default: blank.
+NotAllowedInURL=.aac
+
+[RadioBrowser Sorting]
+; Use one of possible values of "order" field of  http://all.api.radio-browser.info/#Advanced_station_search . Case sensitive! Default: name;
+; Applicable for station lists only.
+Order=name
+
+; Reverse; 0 = ascending; 1 = descending. Default: 0;
+; Applicable for station lists only.
+Reverse=0

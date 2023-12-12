@@ -94,13 +94,13 @@ constructor TVTunerPage.Create;
 begin
   inherited Create;
   Items:= TFPObjectlist.Create(True);
+  Items.OwnsObjects:=True;
 end;
 
 destructor TVTunerPage.Destroy;
 begin
   Items.Clear;
   FreeAndNil(Items);
-  inherited Destroy;
 end;
 
 procedure TVTunerPage.Add(Item: TObject);

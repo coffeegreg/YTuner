@@ -11,8 +11,6 @@ uses
   md5, common;
 
 const
-  MY_STATIONS_PREFIX = 'MS';
-  PATH_MY_STATIONS = 'my_stations';
   MY_STATIONS_EXT : Array Of AnsiString = ('.ini','.yaml','.yml');
 
 type
@@ -27,12 +25,12 @@ type
                                 MSStations: TMyStations;
                               end;
 
-  TStation = record
-               Category: string;
-               Station: TMyStation;
-             end;
+  TMSStation = record
+                 Category: string;
+                 Station: TMyStation;
+               end;
 
-function GetMyStationByID(AID: string): TStation;
+function GetMyStationByID(AID: string): TMSStation;
 function ReadMyStationsINIFile(AMyStationsFileName: string): boolean;
 function ReadMyStationsYAMLFile(AMyStationsFileName: string): boolean;
 
@@ -46,7 +44,7 @@ var
 
 implementation
 
-function GetMyStationByID(AID: string): TStation;
+function GetMyStationByID(AID: string): TMSStation;
 var
   i,j: integer;
 begin

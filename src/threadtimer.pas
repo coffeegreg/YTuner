@@ -27,9 +27,16 @@ type
     property Enabled: Boolean read FEnabled write FEnabled;
     procedure StopTimer;
     procedure StartTimer;
+    procedure TerminateTimer;
     constructor Create(AName: string);
-    destructor Destroy; override;
   end;
+
+const
+  RB_THREAD = 'RBThread';
+  MS_THREAD = 'MSThread';
+
+var
+  RBThread, MSThread : TThreadTimer;
 
 implementation
 
@@ -40,12 +47,6 @@ begin
   FInterval:=1000;
   FreeOnTerminate:=True;
   FEnabled:=False;
-end;
-
-destructor TThreadTimer.Destroy;
-begin
-  FEvent.Free;
-  inherited Destroy;
 end;
 
 procedure TThreadTimer.DoOnTimer;
@@ -76,6 +77,18 @@ procedure TThreadTimer.StartTimer;
 begin
   FEnabled:=True;
   if Self.Suspended then Start;
+end;
+
+procedure TThreadTimer.TerminateTimer;
+begin
+  StopTimer;
+  if Assigned(FEvent) then
+    begin
+      FEvent.SetEvent;
+      FEvent.Free;
+    end;
+  Terminate;
+//  WaitFor;
 end;
 
 end.

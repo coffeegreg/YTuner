@@ -39,9 +39,10 @@ uses
   fpreadtiff,
 {$ENDIF}
   fphttpclient, httpdefs, httproute, DOM,
-  common, vtuner, my_stations, radiobrowser, bookmark;
+  common, vtuner, my_stations, radiobrowser, bookmark, avr;
 
 const
+  WEB_SERVICE = 'Web Service';
   PATH_HTTP = 'http://';
   PATH_SETUPAPP = 'setupapp';
   PATH_STATXML_ASP = 'statxml.asp';
@@ -64,18 +65,10 @@ const
 
   PATH_RADIOBROWSER_CATEGORIES : array[0..3] of string = (PATH_RADIOBROWSER_GENRE,PATH_RADIOBROWSER_COUNTRY,PATH_RADIOBROWSER_LANGUAGE,PATH_RADIOBROWSER_POPULAR);
 
-  PATH_PARAM_ID = 'id';
-  PATH_PARAM_MAC = 'mac';
-  PATH_PARAM_FAV = 'fav';
-  PATH_PARAM_SEARCH = 'search';
-  PATH_PARAM_TOKEN = 'token';
-
   MSG_QUERY_TOO_SHORT = 'Search query too short.';
   MSG_NO_STATIONS_FOUND = 'No station(s) found';
   MSG_FOR_THIS_CATEGORY = ' for this category';
   MSG_UNKNOWN_ROUTE = 'Unknown route';
-
-  ICON_CACHE_PATH = 'cache';
 
 var
   WebServerIPAddress: string;
@@ -112,12 +105,12 @@ procedure ServerResponse(AResponseCode: integer; AResponseContentType: TResponse
 procedure SendPageResponse(AResponseCode: integer; AResponseContentType: TResponseContentType; ARes: TResponse; AMyPage: TVTunerPage);
 
 // vTuner structures routines
-function SetVTunerStation(LStation: TStation; AReq: TRequest): TVTunerStation;
+function SetVTunerStation(LStation: TMSStation; AReq: TRequest): TVTunerStation;
 function SetVTunerStation(LRBStation: TRBStation; AReq: TRequest): TVTunerStation;
 function SetVTunerDirectory(ATitle, ADestination: string; AItemCount: integer): TVTunerDirectory;
 function SetVTunerDisplay(AMessage: string): TVTunerDisplay;
 
-// Display AVR messsage
+// Display AVR messsages
 procedure DisplayMessage(AMessage: string; var ARes: TResponse);
 
 implementation
@@ -308,16 +301,16 @@ procedure GetMyStationsOfCategory(AReq: TRequest; ARes: TResponse);
 var
   i: integer;
   LMyPage: TVTunerPage;
-  LStation: TStation;
+  LMSStation: TMSStation;
   LCategoryIdx: integer = 0;
   LFirstElement: integer = 0;
   LLastElement: integer = 0;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
-  LStation.Category:=HTTPDecode(AReq.RouteParams[PATH_CATEGORY]);
-  while (LCategoryIdx<Length(MyStations)-1) and (MyStations[LCategoryIdx].MSCategory.ToLower<>LStation.Category.ToLower) do
+  LMSStation.Category:=HTTPDecode(AReq.RouteParams[PATH_CATEGORY]);
+  while (LCategoryIdx<Length(MyStations)-1) and (MyStations[LCategoryIdx].MSCategory.ToLower<>LMSStation.Category.ToLower) do
     Inc(LCategoryIdx);
-  if MyStations[LCategoryIdx].MSCategory.ToLower=LStation.Category.ToLower then
+  if MyStations[LCategoryIdx].MSCategory.ToLower=LMSStation.Category.ToLower then
     begin
       GetPageRange(LFirstElement,LLastElement,Length(MyStations[LCategoryIdx].MSStations),AReq.QueryFields);
       LMyPage:=TVTunerPage.Create;
@@ -327,15 +320,15 @@ begin
           begin
             for i:=LFirstElement to LLastElement do
               begin
-                LStation.Station:=MyStations[LCategoryIdx].MSStations[i];
-                LMyPage.Add(SetVTunerStation(LStation,AReq));
+                LMSStation.Station:=MyStations[LCategoryIdx].MSStations[i];
+                LMyPage.Add(SetVTunerStation(LMSStation,AReq));
               end;
             SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
           end
         else
           begin
-            Logging(ltError, MSG_NO_STATIONS_FOUND+' for: "'+LStation.Category+'"');
-            DisplayMessage(MSG_NO_STATIONS_FOUND+' for: "'+LStation.Category+'"',ARes);
+            Logging(ltError, MSG_NO_STATIONS_FOUND+' : '+LMSStation.Category);
+            DisplayMessage(MSG_NO_STATIONS_FOUND+' : '+LMSStation.Category,ARes);
           end;
       finally
         LMyPage.Free;
@@ -354,15 +347,16 @@ var
   LImageWriter: TFPCustomImageWriter = nil;
   LImageFile: string;
   LGetImageFromURL: boolean = True;
+  LRBStation: TRBStation;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
   LImageFile:=AReq.QueryFields.Values[PATH_PARAM_ID];
   LStream:=TMemoryStream.Create;
   try
-    if IconCache and FileExists(MyAppPath+ICON_CACHE_PATH+PathDelim+LImageFile) then
+    if IconCache and FileExists(CachePath+DirectorySeparator+LImageFile) then
       begin
         try
-          LStream.LoadFromFile(MyAppPath+ICON_CACHE_PATH+PathDelim+LImageFile);
+          LStream.LoadFromFile(CachePath+DirectorySeparator+LImageFile);
           if LStream.Size>0 then
             begin
               LGetImageFromURL:=False;
@@ -383,7 +377,15 @@ begin
       begin
         case LImageFile.Substring(0,2) of
           MY_STATIONS_PREFIX: LURL:=GetMyStationByID(LImageFile).Station.MSLogoURL;
-          RADIOBROWSER_PREFIX: with GetRBStationByID(LImageFile.Substring(3,12)) do LURL:=IfThen(RBSID.IsEmpty,'',RBSIcon);
+          RADIOBROWSER_PREFIX: begin
+                                 LRBStation:=TRBStation.Create;
+                                 try
+                                   GetRBStationByID(LRBStation,LImageFile.Substring(3,12),GetAVRConfigIdx(AReq));
+                                   LURL:=LRBStation.RBSIcon;
+                                 finally
+                                   LRBStation.Free;
+                                 end;
+                               end;
         end;
         if LURL <> '' then
           begin
@@ -472,9 +474,9 @@ begin
                     {$ENDIF}
                     if IconCache then
                       begin
-                        if not DirectoryExists(MyAppPath+ICON_CACHE_PATH) then CreateDir(MyAppPath+ICON_CACHE_PATH);
+                        if not DirectoryExists(CachePath) then CreateDir(CachePath);
                         try
-                          LStream.SaveToFile(MyAppPath+ICON_CACHE_PATH+PathDelim+LImageFile);
+                          LStream.SaveToFile(CachePath+DirectorySeparator+LImageFile);
                         except
                           on E : Exception do
                             Logging(ltError, LImageFile+MSG_FILE_SAVE_ERROR+' ('+E.Message+')');
@@ -508,15 +510,18 @@ end;
 procedure GetRadioBrowserDirectory(AReq: TRequest; ARes: TResponse);
 var
   LMyPage: TVTunerPage;
+  LAVRConfigIdx: integer;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
+  LAVRConfigIdx:=GetAVRConfigIdx(AReq);
   LMyPage:=TVTunerPage.Create;
   try
     LMyPage.TotalItemsCount:=4;
-    LMyPage.Add(SetVTunerDirectory('Genres',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_GENRE,GetCategoryItemsCount(rbctGenre)));
-    LMyPage.Add(SetVTunerDirectory('Countries',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_COUNTRY,GetCategoryItemsCount(rbctCountry)));
-    LMyPage.Add(SetVTunerDirectory('Languages',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_LANGUAGE,GetCategoryItemsCount(rbctLanguage)));
+    LMyPage.Add(SetVTunerDirectory('Genres',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_GENRE,GetCategoryItemsCount(rbctGenre,LAVRConfigIdx)));
+    LMyPage.Add(SetVTunerDirectory('Countries',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_COUNTRY,GetCategoryItemsCount(rbctCountry,LAVRConfigIdx)));
+    LMyPage.Add(SetVTunerDirectory('Languages',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_LANGUAGE,GetCategoryItemsCount(rbctLanguage,LAVRConfigIdx)));
     LMyPage.Add(SetVTunerDirectory('Most popular',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_POPULAR,RBPopularAndSearchStationsLimit));
+
     SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
   finally
     LMyPage.Free;
@@ -530,50 +535,61 @@ var
   LFirstElement: integer = 0;
   LLastElement: integer = 0;
   LCategoryIdx: integer;
-  LRBCategoryItems: TRBCategoryItems;
+  LRBCategories: TRBCategories;
 begin
-  Logging(ltDebug, AReq.Method+' '+AReq.URI);
   LCategoryIdx:=IndexStr(AReq.RouteParams[PATH_CATEGORY_TYPE],PATH_RADIOBROWSER_CATEGORIES);
   case LCategoryIdx of
-    0..2 :
-      begin
-        LRBCategoryItems:=GetCategoryItems(TRBAllCategoryTypes(LCategoryIdx));
-        GetPageRange(LFirstElement,LLastElement,Length(LRBCategoryItems),AReq.QueryFields);
-        LMyPage:=TVTunerPage.Create;
-        LMyPage.TotalItemsCount:=Length(LRBCategoryItems);
-        try
-          if Length(LRBCategoryItems)>0 then
-            begin
-              for i:=LFirstElement to LLastElement do
-                with LRBCategoryItems[i] do
-                  LMyPage.Add(SetVTunerDirectory(RBCName,PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_CATEGORIES[LCategoryIdx]+'/'+RBCName,RBCCount));
-              SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
-            end
-          else
-            begin
-              Logging(ltError, MSG_NO_STATIONS_FOUND+MSG_FOR_THIS_CATEGORY);
-              DisplayMessage(MSG_NO_STATIONS_FOUND+MSG_FOR_THIS_CATEGORY,ARes);
+    0..2: begin
+            Logging(ltDebug, AReq.Method+' '+AReq.URI);
+            LRBCategories:=TRBCategories.Create;
+            try
+              GetCategoryItems(LRBCategories,TRBAllCategoryTypes(LCategoryIdx),GetAVRConfigIdx(AReq));
+              if LRBCategories.Count>0 then
+                begin
+                  GetPageRange(LFirstElement,LLastElement,LRBCategories.Count,AReq.QueryFields);
+                  LMyPage:=TVTunerPage.Create;
+                  try
+                    LMyPage.TotalItemsCount:=LRBCategories.Count;
+                    for i:=LFirstElement to LLastElement do
+                      with TRBCategory(LRBCategories.Objects[i]) do
+                        LMyPage.Add(SetVTunerDirectory(RBCName,PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_CATEGORIES[LCategoryIdx]+'/'+RBCName,RBCMaxCount));
+                    SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
+                  finally
+                    LMyPage.Free;
+                  end;
+                end
+              else
+                begin
+                  Logging(ltError, MSG_NO_STATIONS_FOUND+MSG_FOR_THIS_CATEGORY);
+                  DisplayMessage(MSG_NO_STATIONS_FOUND+MSG_FOR_THIS_CATEGORY,ARes);
+                end;
+            finally
+              LRBCategories.Free;
             end;
-        finally
-          LMyPage.Free;
-          SetLength(LRBCategoryItems,0);
-          LRBCategoryItems:=nil;
-        end;
-      end;
+          end;
     3: GetRadioBrowserCategoryStations(AReq,ARes);
   else
-    Logging(ltError, 'Radiobrowser category type not recognized ?!');
+    Logging(ltError, 'Radiobrowser category type not supported ?!');
   end;
 end;
 
 procedure GetRadioBrowserCategoryStations(AReq: TRequest; ARes: TResponse);
 var
   LRBCategoryTypeIdx: integer;
+  LRBStations: TRBStations;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
   LRBCategoryTypeIdx:=IndexStr(AReq.RouteParams[PATH_CATEGORY_TYPE],PATH_RADIOBROWSER_CATEGORIES);
   case LRBCategoryTypeIdx of
-    0..3: GetRadioBrowserStations(GetStationsBy(TRBAllCategoryTypes(LRBCategoryTypeIdx),AReq.RouteParams[PATH_CATEGORY]),AReq,ARes);
+    0..3: begin
+            LRBStations:=TRBObjectsList.Create;
+            try
+              GetStationsBy(LRBStations,TRBAllCategoryTypes(LRBCategoryTypeIdx),AReq.RouteParams[PATH_CATEGORY],GetAVRConfigIdx(AReq));
+              GetRadioBrowserStations(LRBStations,AReq,ARes);
+            finally
+              LRBStations.Free;
+            end;
+          end
   else
     ServerResponse(HTTP_CODE_NOT_FOUND,ctNone,ARes,'');
   end;
@@ -602,19 +618,26 @@ end;
 
 procedure PlayStation(AReq: TRequest; ARes: TResponse);
 var
-  LURL: string='';
+  LURL: string = '';
   LCode: integer;
+  LRBStation: TRBStation;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
   case AReq.QueryFields.Values[PATH_PARAM_ID].Substring(0,2) of
     MY_STATIONS_PREFIX:
       with GetMyStationByID(AReq.QueryFields.Values[PATH_PARAM_ID]) do
         if Station.MSID<>'' then
-          LURL:=StripHttps(Station.MSURL);
+          LURL:=StripHttps(Station.MSURL,AReq);
     RADIOBROWSER_PREFIX:
-      with GetRBStationByID(AReq.QueryFields.Values[PATH_PARAM_ID].Substring(3,12)) do
-        if RBSID<>'' then
-          LURL:=StripHttps(RBSURL);
+      begin
+        LRBStation:=TRBStation.Create;
+        try
+          GetRBStationByID(LRBStation,AReq.QueryFields.Values[PATH_PARAM_ID].Substring(3,12),GetAVRConfigIdx(AReq));
+          LURL:=LRBStation.RBSURL;
+        finally
+          LRBStation.Free;
+        end;
+      end;
   end;
   if LURL<>'' then
     begin
@@ -627,13 +650,23 @@ begin
 end;
 
 procedure GetRadioBrowserSearchedStations(AReq: TRequest; ARes: TResponse);
+var
+  LRBStations: TRBStations;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
   try
     if AReq.QueryFields.Values[PATH_PARAM_SEARCH].Length<3 then
       DisplayMessage(MSG_QUERY_TOO_SHORT,ARes)
     else
-      GetRadioBrowserStations(GetStationsBy(rtctSearch,AReq.QueryFields.Values[PATH_PARAM_SEARCH]),AReq,ARes);
+      begin
+        LRBStations:=TRBStations.Create;
+        try
+          GetStationsBy(LRBStations,rtctSearch,AReq.QueryFields.Values[PATH_PARAM_SEARCH],GetAVRConfigIdx(AReq));
+          GetRadioBrowserStations(LRBStations,AReq,ARes);
+        finally
+          LRBStations.Free;
+        end;
+      end;
   except
     on E: Exception do
       Logging(ltError, 'Search error: '+E.Message);
@@ -675,30 +708,35 @@ end;
 
 function GetStationInfo(AReq: TRequest; AMyPage: TVTunerPage): string;
 var
-  LStation: TStation;
+  LMSStation: TMSStation;
   LRBStation: TRBStation;
 begin
   Result:='';
   case AReq.QueryFields.Values[PATH_PARAM_ID].Substring(0,2) of
     MY_STATIONS_PREFIX:
       begin
-        LStation:=GetMyStationByID(AReq.QueryFields.Values[PATH_PARAM_ID]);
-        if LStation.Station.MSID<>'' then
+        LMSStation:=GetMyStationByID(AReq.QueryFields.Values[PATH_PARAM_ID]);
+        if LMSStation.Station.MSID<>'' then
           begin
             AMyPage.TotalItemsCount:=1;
-            AMyPage.Add(SetVTunerStation(LStation,AReq));
-            Result:=LStation.Station.MSID;
+            AMyPage.Add(SetVTunerStation(LMSStation,AReq));
+            Result:=LMSStation.Station.MSID;
           end;
       end;
     RADIOBROWSER_PREFIX:
       begin
-        LRBStation:=GetRBStationByID(AReq.QueryFields.Values[PATH_PARAM_ID].Substring(3,12));
-        if LRBStation.RBSID<>'' then
-          begin
-            AMyPage.TotalItemsCount:=1;
-            AMyPage.Add(SetVTunerStation(LRBStation,AReq));
-            Result:=LRBStation.RBSID;
-          end;
+        LRBStation:=TRBStation.Create;
+        try
+          GetRBStationByID(LRBStation,AReq.QueryFields.Values[PATH_PARAM_ID].Substring(3,12),GetAVRConfigIdx(AReq));
+          if LRBStation.RBSID<>'' then
+            begin
+              AMyPage.TotalItemsCount:=1;
+              AMyPage.Add(SetVTunerStation(LRBStation,AReq));
+              Result:=LRBStation.RBSID;
+            end;
+        finally
+          LRBStation.Free;
+        end;
       end;
   end;
 end;
@@ -710,26 +748,24 @@ var
   FirstElement: integer = 0;
   LastElement: integer = 0;
 begin
-  GetPageRange(FirstElement,LastElement,Length(ARBStations),AReq.QueryFields);
-  LMyPage:= TVTunerPage.Create;
-  LMyPage.TotalItemsCount:=Length(ARBStations);
-  try
-    if Length(ARBStations)>0 then
-      begin
+  if ARBStations.Count>0 then
+    begin
+      GetPageRange(FirstElement,LastElement,ARBStations.Count,AReq.QueryFields);
+      LMyPage:= TVTunerPage.Create;
+      try
+        LMyPage.TotalItemsCount:=ARBStations.Count;
         for i:=FirstElement to LastElement do
-          LMyPage.Add(SetVTunerStation(ARBStations[i],AReq));
+          LMyPage.Add(SetVTunerStation(TRBStation(ARBStations.Objects[i]),AReq));
         SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
-      end
-    else
-      begin
-        Logging(ltWarning, MSG_NO_STATIONS_FOUND+' for: '+AReq.RouteParams[PATH_CATEGORY]);
-        DisplayMessage(MSG_NO_STATIONS_FOUND,ARes);
+      finally
+        LMyPage.Free;
       end;
-  finally
-    SetLength(ARBStations,0);
-    ARBStations:=nil;
-    LMyPage.Free;
-  end;
+    end
+  else
+    begin
+      Logging(ltWarning, MSG_NO_STATIONS_FOUND+' : '+AReq.RouteParams[PATH_CATEGORY]);
+      DisplayMessage(MSG_NO_STATIONS_FOUND,ARes);
+    end;
 end;
 // END - Service routines
 
@@ -763,6 +799,7 @@ end;
 procedure SendPageResponse(AResponseCode: integer; AResponseContentType: TResponseContentType; ARes: TResponse; AMyPage: TVTunerPage);
 var
   LStream: TStream;
+//  LStream: TMemoryStream;
 begin
   LStream:=TMemoryStream.Create;
   try
@@ -775,7 +812,7 @@ end;
 // END - Server response routines
 
 // BEGIN - vTuner structures routines
-function SetVTunerStation(LStation: TStation; AReq: TRequest): TVTunerStation;
+function SetVTunerStation(LStation: TMSStation; AReq: TRequest): TVTunerStation;
 begin
   Result:=TVTunerStation.Create;
   with Result, LStation do
@@ -783,7 +820,7 @@ begin
       UID:=Station.MSID;
       Name:=Station.MSName;
       Description:='My favorite "'+Station.MSName+'"';
-      URL:=StripHttps(Station.MSURL);
+      URL:=StripHttps(Station.MSURL,AReq);
       Icon:=PATH_HTTP+MyIPAddress+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+Station.MSID;
       Genre:=Category;
       Bookmark:=PATH_HTTP+MyIPAddress+'/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP+'?'+PATH_PARAM_ID+'='+Station.MSID+'&'+PATH_FAVACTION+'='+PATH_FAVACTION_ADD;
@@ -795,10 +832,10 @@ begin
   Result:=TVTunerStation.Create;
   with Result, LRBStation do
     begin
-      UID:= RADIOBROWSER_PREFIX+'_'+RBSID.Replace('-','').Substring(0,12).ToUpper;
+      UID:=RADIOBROWSER_PREFIX+'_'+RBSID.Replace('-','').Substring(0,12).ToUpper;
       Name:=RBSName;
       Description:=RBSName+' : '+RBSHomePageURL;
-      URL:=StripHttps(RBSURL);
+      URL:=StripHttps(RBSURL,AReq);
       Genre:=AReq.RouteParams[PATH_CATEGORY];
       Location:=RBSCountry;
       Mime:=RBSCodec.ToUpper;
@@ -826,7 +863,7 @@ begin
 end;
 // END - vTuner structures routines
 
-// Display AVR messsage
+// BEGIN - Display AVR messsages
 procedure DisplayMessage(AMessage: string; var ARes: TResponse);
 var
   LMyPage: TVTunerPage;
@@ -840,6 +877,7 @@ begin
     LMyPage.Free;
   end;
 end;
+// END - Display AVR messsages
 
 end.
 

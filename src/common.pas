@@ -7,18 +7,18 @@ unit common;
 interface
 
 uses
-  Classes, SysUtils, IdStack, IdGlobal, crc;
-
+  Classes, SysUtils, IdStack, IdGlobal, StrUtils, crc;
 
 type
   TLogType = (ltNone, ltInfo, ltWarning, ltError, ltDebug);
   TResponseContentType = (ctNone, ctXML, ctPNG, ctJPG, ctGIF, ctTIFF, ctJSON);
+  TCacheType = (catNone, catFile, catMemStr);
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.0.2';
+  APP_VERSION = '1.1.0';
   APP_COPYRIGHT = 'Copyright (c) 2023 Greg P. (https://github.com/coffeegreg)';
-  INI_VERSION = '1.0.2';
+  INI_VERSION = '1.1.0';
 
   YTUNER_USER_AGENT = 'YTuner';
   YTUNER_HOST = 'ytunerhost';
@@ -27,15 +27,29 @@ const
 
   MSG_FILE_LOAD_ERROR = ' file load error';
   MSG_FILE_SAVE_ERROR = ' file save error';
-  MSG_LOADING = 'Loading ';
-  MSG_GETTING = 'Getting ';
+  MSG_FILE_DELETE_ERROR = ' file delete error';
+  MSG_LOADING = 'loading';
+  MSG_REMOVING = 'removing';
+  MSG_GETTING = 'getting';
   MSG_ERROR = 'error';
-  MSG_SUCCESSFULLY_LOADED = 'Successfully loaded ';
-  MSG_SUCCESSFULLY_SAVED = 'Successfully saved ';
-  MSG_SUCCESSFULLY_DOWNLOADED = 'Successfully downloaded ';
-  MSG_ERROR_LOAD = 'Load error of ';
+  MSG_LOADED = 'loaded';
+  MSG_SAVE = 'save';
+  MSG_SAVED = 'saved';
+  MSG_EMPTY = 'empty';
+  MSG_CACHE = 'cache';
+  MSG_FILE = 'file';
+  MSG_STREAM = 'stream';
+  MSG_OBJECTS = 'objects';
+  MSG_BOOKMARK = 'bookmark';
+  MSG_SUCCESSFULLY_LOADED = 'successfully loaded ';
+  MSG_SUCCESSFULLY_SAVED = 'successfully saved ';
+  MSG_SUCCESSFULLY_DOWNLOADED = 'successfully downloaded ';
+  MSG_ERROR_LOAD = 'load error of';
   MSG_NOT_LOADED = 'not loaded';
+  MSG_NOT_FOUND = 'not found';
   MSG_STATIONS = 'stations';
+
+  MSG_RBUUID_CACHE_FILE = 'RB UUIDs cache file';
 
   INI_CONFIGURATION = 'Configuration';
   INI_RADIOBROWSER = 'RadioBrowser';
@@ -43,6 +57,7 @@ const
   INI_BOOKMARK = 'Bookmark';
   INI_WEBSERVER = 'WebServer';
   INI_DNSSERVER = 'DNSServer';
+  INI_MAINTENANCESERVER = 'MaintenanceServer';
 
   HTTP_HEADER_ACCEPT = 'Accept';
   HTTP_HEADER_USER_AGENT = 'User-Agent';
@@ -50,28 +65,55 @@ const
   HTTP_HEADER_SERVER = 'Server';
   HTTP_RESPONSE_CONTENT_TYPE : array[TResponseContentType] of string = ('text/html; charset=utf-8','application/xml','image/png','image/jpeg','image/gif','image/tiff','application/json');
 
+  MY_STATIONS_PREFIX = 'MS';
+  RADIOBROWSER_PREFIX = 'RB';
+  PATH_MY_STATIONS = 'my_stations';
+
+  PATH_PARAM_ID = 'id';
+  PATH_PARAM_MAC = 'mac';
+  PATH_PARAM_FAV = 'fav';
+  PATH_PARAM_SEARCH = 'search';
+  PATH_PARAM_TOKEN = 'token';
+
   HTTP_CODE_OK = 200;
   HTTP_CODE_FOUND = 302;
   HTTP_CODE_NOT_FOUND = 404;
+  HTTP_CODE_UNAVAILABLE = 503;
 
   DEFAULT_STRING = 'default';
+  ESC_CHARS : Array Of AnsiString = ('\t','\n','\r','\b','\f');
+  STRIP_CHARS: Array Of AnsiString =  ('!','*','''','(',')',';',':','@','&','=','+','$',',','/','?','%','#','[',']','-','_','.','~',#10,#13,#09);
+
+  PATH_CACHE = 'cache';
+  PATH_CONFIG = 'config';
+
+  CACHE_EXT = '.cache';
+
 var
   MyIPAddress: string = DEFAULT_STRING;
   LogType: TLogType = ltError;
   MyAppPath: string;
   UseSSL: boolean = True;
+  CachePath: string = DEFAULT_STRING;
+  ConfigPath: string = DEFAULT_STRING;
 
 procedure Logging(ALogType: TLogType; ALogMessage: string);
 function GetLocalIP(ADefaultIP: string): string;
-function StripHttps(URL: string):string;
-function CalcFileCRC32(AFileName: string): LongInt;
+function CalcFileCRC32(AFileName: string): Cardinal;
+function RemoveEscChars(LInputStr: RawByteString): RawByteString;
+function HaveCommonElements(AStr: string; AStrArray: array of string): boolean;
+function ContainsIn(AStr: string; AStrArray: array of string): boolean;
+function StripChars(AInputString: string):string;
 
 implementation
 
 procedure Logging(ALogType: TLogType; ALogMessage: string);
 begin
   if ALogType<=LogType then
-    Writeln(DateTimeToStr(Now)+' : '+LOG_TYPE_MSG[ALogType]+' : '+ALogMessage+'.');
+    begin
+      ALogMessage[1]:=UpCase(ALogMessage[1]);
+      Writeln(DateTimeToStr(Now)+' : '+LOG_TYPE_MSG[ALogType]+' : '+ALogMessage+'.');
+    end;
 end;
 
 function GetLocalIP(ADefaultIP: string): string;
@@ -138,12 +180,7 @@ begin
     end;
 end;
 
-function StripHttps(URL: string):string;
-begin
-  StripHttps:=StringReplace(URL,'https://','http://',[]);
-end;
-
-function CalcFileCRC32(AFileName: string): LongInt;
+function CalcFileCRC32(AFileName: string): Cardinal;
 var
   Buffer : TBytes;
 begin
@@ -156,6 +193,46 @@ begin
     finally
       Free;
     end;
+end;
+
+function RemoveEscChars(LInputStr: RawByteString): RawByteString;
+var
+  i: integer;
+begin
+  for i:=Low(ESC_CHARS) to High(ESC_CHARS) do
+    Result:=AnsiReplaceStr(LInputStr,ESC_CHARS[i],'');
+end;
+
+function HaveCommonElements(AStr: string; AStrArray: array of string): boolean;
+var
+  LStrEnum,LStrArrayEnum: string;
+begin
+  Result:=False;
+  for LStrEnum in AStr.Split([',','/',';']) do
+    for LStrArrayEnum in AStrArray do
+      if IsWild(Trim(LStrEnum),LStrArrayEnum,True) then
+      begin
+        Result:=True;
+        Exit;
+      end;
+end;
+
+function ContainsIn(AStr: string; AStrArray: array of string): boolean;
+var
+  LStrArrayEnum: string;
+begin
+  Result:=False;
+  for LStrArrayEnum in AStrArray do
+    if ContainsText(AStr,LStrArrayEnum) then
+      begin
+        Result:=True;
+        Exit;
+      end;
+end;
+
+function StripChars(AInputString: string):string;
+begin
+  Result:=DelSpace1(StringsReplace(AInputString,STRIP_CHARS,(DupeString(' ,',Length(STRIP_CHARS)-1)+' ').Split([',']),[rfReplaceAll]).Trim);
 end;
 
 end.
