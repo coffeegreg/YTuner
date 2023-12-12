@@ -133,7 +133,7 @@ You can decide about it with `CommonAVRini` setting of `ytuner.ini`.
 Common AVR config file `avr.ini` or other AVRs dedicated config files have the following capabilities:
 https://github.com/coffeegreg/YTuner/blob/273e48b94f4c1b3bd33077905ae1f4fa8ca3ee95/cfg/example-avr.ini#L1-L78
 
-Please read the descriptions in the `.ini` files carefully.
+_Please read the descriptions in both `.ini` files carefully._
 ### Custom stations
 You can enable support for the stations list local file. Two types of files are supported:
 * .ini file :
