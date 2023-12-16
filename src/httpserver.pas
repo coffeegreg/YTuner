@@ -284,7 +284,7 @@ begin
       begin
         for i:=LFirstElement to LLastElement do
           with MyStations[i] do
-            LMyPage.Add(SetVTunerDirectory(MSCategory,PATH_ROOT+'/'+PATH_MY_STATIONS+'/'+MSCategory,Length(MSStations)));
+            LMyPage.Add(SetVTunerDirectory(MSCategory,PATH_ROOT+'/'+PATH_MY_STATIONS+'/'+URLEncode(MSCategory),Length(MSStations)));
         SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
       end
     else
@@ -552,7 +552,7 @@ begin
                     LMyPage.TotalItemsCount:=LRBCategories.Count;
                     for i:=LFirstElement to LLastElement do
                       with TRBCategory(LRBCategories.Objects[i]) do
-                        LMyPage.Add(SetVTunerDirectory(RBCName,PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_CATEGORIES[LCategoryIdx]+'/'+RBCName,RBCMaxCount));
+                        LMyPage.Add(SetVTunerDirectory(RBCName,PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_CATEGORIES[LCategoryIdx]+'/'+URLEncode(RBCName),RBCMaxCount));
                     SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
                   finally
                     LMyPage.Free;

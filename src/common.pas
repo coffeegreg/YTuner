@@ -16,7 +16,7 @@ type
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.1.0';
+  APP_VERSION = '1.1.1';
   APP_COPYRIGHT = 'Copyright (c) 2023 Greg P. (https://github.com/coffeegreg)';
   INI_VERSION = '1.1.0';
 
@@ -104,6 +104,7 @@ function RemoveEscChars(LInputStr: RawByteString): RawByteString;
 function HaveCommonElements(AStr: string; AStrArray: array of string): boolean;
 function ContainsIn(AStr: string; AStrArray: array of string): boolean;
 function StripChars(AInputString: string):string;
+function URLEncode(const AStr: String): AnsiString;
 
 implementation
 
@@ -233,6 +234,21 @@ end;
 function StripChars(AInputString: string):string;
 begin
   Result:=DelSpace1(StringsReplace(AInputString,STRIP_CHARS,(DupeString(' ,',Length(STRIP_CHARS)-1)+' ').Split([',']),[rfReplaceAll]).Trim);
+end;
+
+function URLEncode(const AStr: String): AnsiString;
+var
+  LAnsiChar: AnsiChar;
+begin
+  Result:='';
+  for LAnsiChar in AStr do
+    begin
+      if ((Ord(LAnsiChar)<65) or (Ord(LAnsiChar)>90))
+         and ((Ord(LAnsiChar)<97) or (Ord(LAnsiChar)>122)) then
+        Result:=Result+'%'+IntToHex(Ord(LAnsiChar),2)
+      else
+        Result:=Result+LAnsiChar;
+    end;
 end;
 
 end.
