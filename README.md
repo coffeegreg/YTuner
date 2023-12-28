@@ -170,7 +170,7 @@ See [Application configuration](README.md#application-configuration) section abo
 ### Windows
 Simply execute `ytuner.exe`. 
 
-### Linux / *nix
+### Linux / Unix (Solaris, BSD) / macOS
 If you credentials meet all requirements mentioned above just go to your ytuner directory and start application or simple use `sudo` to execute application: 
 ```
 $ sudo ./ytuner
