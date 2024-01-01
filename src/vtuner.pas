@@ -129,8 +129,8 @@ var
   LXMLDoc: TXMLDocument;
   LXMLDocStream: TStringStream;
 begin
+  LXMLDoc:=TXMLDocument.Create;
   try
-    LXMLDoc:=TXMLDocument.Create;
     MakeXML(LXMLDoc);
     try
       LXMLDocStream:=TStringStream.Create;

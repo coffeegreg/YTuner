@@ -40,9 +40,9 @@ end;
 
 function GetBookmarkItemsCount(AMAC: string): integer;
 var
-  LXMLBookmark : TXMLDocument;
+  LXMLBookmark: TXMLDocument = nil;
   LNode: TDOMNode;
-  LItemCount: integer=0;
+  LItemCount: integer = 0;
 begin
   AMAC:=GetBookmarkFileName(AMAC);
   try
@@ -67,7 +67,8 @@ end;
 
 function GetBookmark(AMAC: string; AFirstElement, ALastElement: integer; AXMLStream: TStream): boolean;
 var
-  LXMLBookmark,LXMLBookmarkPart : TXMLDocument;
+  LXMLBookmark: TXMLDocument = nil;
+  LXMLBookmarkPart: TXMLDocument = nil;
   i: integer;
 begin
   AMAC:=GetBookmarkFileName(AMAC);
@@ -110,7 +111,8 @@ end;
 
 function GetBookmarkStationInfo(AMAC, ASID: string; AXMLStream: TStream): boolean;
 var
-  LXMLBookmark,LXMLBookmarkPart : TXMLDocument;
+  LXMLBookmark: TXMLDocument = nil;
+  LXMLBookmarkPart: TXMLDocument = nil;
   LNode: TDOMNode;
   LStationIdx: integer = -1;
   i: integer;
@@ -162,7 +164,7 @@ end;
 
 procedure SetBookmark(AMAC, AAction: string; ANode: TDOMNode);
 var
-  LXMLBookmark: TXMLDocument;
+  LXMLBookmark: TXMLDocument = nil;
   LNode: TDOMNode;
   LItemCount: integer = 0;
   i: integer;
