@@ -19,6 +19,9 @@ and with selected CPU architecture:
 
 or any others powered by cross-build abilities of [Free Pascal Compiler](https://www.freepascal.org/).
 
+>🕯️🕯️🕯️ The creator of the Pascal Language, Niklaus Wirth, has passed away on January 1st. Free Pascal would not have existed without the work of Niklaus Wirth.
+>We mourn a pioneer and a source of inspiration. Rest in peace, Professor Niklaus Wirth. 🕯️🕯️🕯️
+
 ## Features
 
 YTuner supports :
