@@ -51,6 +51,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Yamaha RX-V671
   * Yamaha RX-V673
   * Yamaha RX-V675 (Tested by [seldam](https://github.com/seldam). Thank you.)
+  * Yamaha RX-V677 (Tested by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
+  * Yamaha RX-V777 (Confirmed by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
   * Yamaha DSP-Z7 (Tested by Beatrice / [TheBossME](https://github.com/TheBossME). Thank you.)
 - Marantz
   * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
