@@ -204,6 +204,9 @@ Use the latest versions of these IDE. Relevant project files are included.
 YTuner uses [Indy - Internet Direct](https://github.com/IndySockets/Indy) library to build its own binary files. Of course, YTuner binaries no longer need any additional libraries beyond the optional OpenSSL.
 >Important: Use the latest version of Indy library to build YTuner.
 
+## Summary
+If you found this project useful, please star it. ⭐
+
 ## License
 YTuner is licensed under MIT license.
 See the [license.txt](LICENSE.txt) file for more details.
