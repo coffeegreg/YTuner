@@ -48,6 +48,7 @@ const
 
   AVR_FILTER_EMPTY = '{empty}';
 
+  AVR_AVR = 'avr';
   AVR_MAC = 'mac';
   AVR_PROTOCOL_HTTP = 'http';
   AVR_PROTOCOL_HTTPS = 'https';
@@ -64,7 +65,7 @@ function ReadAVRINIConfiguration(AAVRMAC: string):integer;
 
 implementation
 
-uses radiobrowser;
+uses radiobrowser, radiobrowserdb;
 
 function StripHttps(AURL: string; AReq: TRequest):string;
 var
@@ -104,8 +105,11 @@ begin
                 Logging(ltInfo, 'Preparing new config ini file ('+LAVRMAC+'.ini)..');
               try
                 Result:=ReadAVRINIConfiguration(LAVRMAC);
-                if (Result>0) and (RBCacheType=catFile) then
-                  LoadRBCacheFilesInfo(Result);
+                if Result>0 then
+                  case RBCacheType of
+                    catFile: LoadRBCacheFilesInfo(Result);
+                    catDB, catMemDB, catPermMemDB: DBRBCheckAVRView(Result);
+                  end;
               finally
                 if Result<0 then                               //INI error.
                   Result:=0;                                   //Default AVR config.
@@ -125,7 +129,7 @@ var
       begin
         if not ValueExists(AVR_INI_SECTION_RADIOBROWSER_FILTERING,AIDENT) then
           WriteString(AVR_INI_SECTION_RADIOBROWSER_FILTERING,AIDENT,'');
-        AFilterItem:=ReadString(AVR_INI_SECTION_RADIOBROWSER_FILTERING,AIDENT,'').Split([';'],TStringSplitOptions.ExcludeEmpty);
+        AFilterItem:=StripChars(ReadString(AVR_INI_SECTION_RADIOBROWSER_FILTERING,AIDENT,''),RB_FILTER_STRIP_CHARS).Split([';'],TStringSplitOptions.ExcludeEmpty);
       end;
   end;
 

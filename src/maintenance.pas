@@ -37,7 +37,7 @@ procedure YTunerServiceDown(Sender: TObject);
 
 implementation
 
-uses httpserver, dnsserver, threadtimer, radiobrowser, my_stations, common;
+uses httpserver, dnsserver, threadtimer, radiobrowser, radiobrowserdb, my_stations, common;
 
 procedure StartMaintenaceHTTPServer;
 begin
@@ -125,7 +125,14 @@ end;
 procedure YTunerServiceDown(Sender: TObject);
 begin
   Logging(ltInfo,string.Join(': ',[APP_NAME,MSG_SHUTTING_DOWN+'. Please wait..']));
-  if RadioBrowserEnabled and RBUUIDsCacheAutoRefresh and (RBUUIDsCacheTTL>0) then
+  if RadioBrowserEnabled and (RBCacheType in [catDB, catMemDB, catPermMemDB]) and (Assigned(DBRBMainConnection))then
+    begin
+      Logging(ltInfo,string.Join(': ',[MSG_RBDB_CLOSING,MSG_RBDB_DB,MSG_RBDB_CONNECTION]));
+      if DBRBMainConnection.Connected then;
+        DBRBMainConnection.Connected:=False;
+      FreeAndNil(DBRBMainConnection);
+    end;
+  if RadioBrowserEnabled and ((RBCacheTTL>0) or (RBUUIDsCacheAutoRefresh and (RBUUIDsCacheTTL>0))) then
     begin
       Logging(ltInfo,string.Join(': ',[RB_THREAD,MSG_SHUTTING_DOWN]));
       try

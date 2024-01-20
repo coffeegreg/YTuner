@@ -452,6 +452,15 @@
         <Filename Value="src\maintenance.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="src\radiobrowserdb.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src\resstreamunzipper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ResStreamUnZipper"/>
+      </Unit>	  
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -484,6 +484,15 @@
         <Filename Value="src\avr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="src\radiobrowserdb.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="src\resstreamunzipper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ResStreamUnZipper"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -510,6 +519,9 @@
         <StackChecks Value="True"/>
       </Checks>
       <VerifyObjMethodCallValidity Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
     </CodeGeneration>
     <Linking>
       <Debugging>

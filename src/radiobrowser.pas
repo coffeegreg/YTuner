@@ -9,13 +9,11 @@ interface
 uses
   Classes, SysUtils,
   fpjson, jsonparser,
-  fphttpclient, httpprotocol,
+  fphttpclient, httpprotocol, httpdefs,
   RegExpr, StrUtils, DateUtils, FileUtil,
   common, avr;
 
 type
-  abc = class(TComponent);
-
   TRBStation = class(TObject)
     RBSID, RBSName, RBSHomePageURL, RBSURL, RBSIcon, RBSTags, RBSCountry, RBSCountryCode, RBSLanguage, RBSVotes, RBSCodec, RBSBitrate : string;
     procedure Assign(Source: TRBStation);
@@ -33,8 +31,10 @@ type
   TRBStations = TRBObjectsList;
   TRBCategories = TRBObjectsList;
 
-  TRBAllCategoryTypes = (rbctGenre, rbctCountry, rbctLanguage, rtctPopular, rtctSearch);
+  TRBAllCategoryTypes = (rbctGenre, rbctCountry, rbctLanguage, rbctPopular, rbctSearch);
   TRBCategoryTypes = rbctGenre..rbctLanguage;
+
+  TRBRootCategoryTypesCount = array[TRBAllCategoryTypes] of integer;
 
   TRBCacheObject = class(TObject)
     CRBRecords: RawByteString;
@@ -92,6 +92,8 @@ const
 
   HIDE_BROKEN_STATIONS : boolean = True;
   RB_CATEGORIES_PATH : array[TRBCategoryTypes] of string = ('tags','countries','languages');
+  RB_JSON_STRIP_CHARS: array of AnsiString =  ('!','*','''','(',')',';',':','@','&','=','+','$',',','/','?','%','#','[',']','-','_','.','~',#10,#13,#09);
+  RB_FILTER_STRIP_CHARS: array of AnsiString =  ('!','"','''','(',')',':','@','&','=','+','$',',','/','?','%','#','[',']','-','.','~',#10,#13,#09);
 
 var
   RadioBrowserEnabled: boolean = True;
@@ -101,7 +103,7 @@ var
   RBUUIDsFilePath: string = '';
   RBUUIDsCacheTTL: integer = -1;
   RBUUIDsCacheAutoRefresh: boolean = False;
-  RBCacheTTL: integer = -1;
+  RBCacheTTL: integer = 0;
   RBCacheType: TCacheType = catFile;
   RBStationsUUIDs: string = '';
   RBCache: TRBCache;
@@ -109,29 +111,35 @@ var
 function GetAPIURLRange(AElementNumber,AElementCount: integer): string;
 function RadiobrowserAPIRequest(AURL: string): RawByteString;
 function RadiobrowserAPIRequestJSON(AURL: string): TJSONData;
+function GetRootItems(var ARootCategoryTypesCount: TRBRootCategoryTypesCount; AAVRConfigIdx: integer): integer;
 function GetCategoryItemsCount(ARBCategoryType: TRBCategoryTypes; AAVRConfigIdx: integer): integer;
-procedure GetCategoryItems(var ARBCategories: TRBCategories; ARBCategoryType: TRBCategoryTypes; AAVRConfigIdx: integer);
-procedure GetStationsBy(var ARBStations: TRBStations; ARBAllCategoryType: TRBAllCategoryTypes; AName: string; AAVRConfigIdx: integer);
+function GetCategoryItems(var ARBCategories: TRBCategories; ARBCategoryType: TRBCategoryTypes; AReq: TRequest): integer;
+function GetCategoryItems(var ARBCategories: TRBCategories; ARBCategoryType: TRBCategoryTypes; AAVRConfigIdx, AStart, AHowMany: integer): integer;
+function GetStationsByCategory(var ARBStations: TRBStations; ARBAllCategoryType: TRBAllCategoryTypes; AName: string; AReq: TRequest): integer;
+function GetStationsByCategory(var ARBStations: TRBStations; ARBAllCategoryType: TRBAllCategoryTypes; AName: string; AAVRConfigIdx, AStart, AHowMany: integer): integer;
 procedure GetRBStationByID(var ARBStation: TRBStation; AID: string; AAVRConfigIdx: integer);
+procedure SetRBCategory(var ARBCategory: TRBCategory; ARBCategoryJSONObject: TJSONObject);
 procedure SetRBStation(var ARBStation: TRBStation; ARBStationJSONObject: TJSONObject);
 function LoadRBStationsUUIDs: boolean;
 procedure GetRBStationsUUIDs;
 function RBCategoriesAVRFilter(AJSONObject: TJSONObject; ARBCategoryType: TRBCategoryTypes; AAVRConfigIdx: integer): boolean;
 function RBStationsAVRFilter(ARBStationJSONObject: TJSONObject; ARBAllCategoryType: TRBAllCategoryTypes; AAVRConfigIdx: integer): boolean;
-function GetRBCache(var ARBObjectsList: TRBObjectsList; ACacheName: string; AAVRConfigIdx: integer): boolean;
+function GetRBCache(var ARBObjectsList: TRBObjectsList; ACacheName: string; AAVRConfigIdx, AStart, AHowMany: integer): integer;
 function SetRBCache(ARBObjectsList: TRBObjectsList; ACacheName: string; AAVRConfigIdx: integer): boolean;
 function GetRBStationCache(var ARBStation: TRBStation; AUUID: string; AAVRConfigIdx: integer): boolean;
 function RemoveEmptyCategory(ARBAllCategoryType: TRBAllCategoryTypes; ACacheName,AName: string; AAVRConfigIdx: integer): boolean;
-function LoadRBObjects(ARBObjectsList: TRBObjectsList; AFileName: string): boolean;
-function LoadRBObjects(ARBObjectsList: TRBObjectsList; ACRBObjects: RawByteString): boolean;
+function LoadRBObjects(ARBObjectsList: TRBObjectsList; ACRBObjects: RawByteString; AStart, AHowMany: integer; AObjectName: string = ''): integer;
+function LoadRBObjects(ARBObjectsList: TRBObjectsList; AFileName: string; AStart, AHowMany: integer; AObjectName: string = ''): integer;
 function SaveRBObjects(ARBObjectsList: TRBObjectsList; AFileName: string): boolean;
 function SaveRBObjects(ARBObjectsList: TRBObjectsList; var ACRBObjects: RawByteString): boolean;
 function SerializeRBObjects(ARBObjectsList: TRBObjectsList; var ACacheStream: TRawByteStringStream): boolean;
-function DeSerializeRBObjects(ARBObjectsList: TRBObjectsList; var ACacheStream: TRawByteStringStream): boolean;
-function LoadRBCacheFilesInfo(AAVRConfigIdx: integer): boolean;
+function DeSerializeRBObjects(ARBObjectsList: TRBObjectsList; var ACacheStream: TRawByteStringStream; AStart, AHowMany: integer; AObjectName: string = ''): integer;
+procedure LoadRBCacheFilesInfo(AAVRConfigIdx: integer);
 procedure RemoveOldRBCacheFiles;
 
 implementation
+
+uses httpserver, radiobrowserdb;
 
 procedure TRBStation.Assign(Source: TRBStation);
 begin
@@ -187,19 +195,28 @@ begin
   Result:=GetJSON(RadiobrowserAPIRequest(AURL));
 end;
 
+procedure SetRBCategory(var ARBCategory: TRBCategory; ARBCategoryJSONObject: TJSONObject);
+begin
+  with ARBCategory, ARBCategoryJSONObject do
+    begin
+      RBCName:=StripChars(Get(API_ATTR_NAME),RB_JSON_STRIP_CHARS);
+      RBCMaxCount:=Get(API_ATTR_STATIONCOUNT);
+    end;
+end;
+
 procedure SetRBStation(var ARBStation: TRBStation; ARBStationJSONObject: TJSONObject);
 begin
   with ARBStation, ARBStationJSONObject do
     begin
       RBSID:=Get(API_ATTR_STATIONUUID);
-      RBSName:=StripChars(Get(API_ATTR_NAME));
+      RBSName:=StripChars(Get(API_ATTR_NAME),RB_JSON_STRIP_CHARS);
       RBSHomePageURL:=Get(API_ATTR_HOMEPAGE);
       RBSURL:=Get(API_ATTR_URL);
       RBSIcon:=Get(API_ATTR_FAVICON);
-      RBSTags:=StripChars(Get(API_ATTR_TAGS));
-      RBSCountry:=StripChars(Get(API_ATTR_COUNTRY));
+      RBSTags:=StripChars(Get(API_ATTR_TAGS),RB_JSON_STRIP_CHARS);
+      RBSCountry:=StripChars(Get(API_ATTR_COUNTRY),RB_JSON_STRIP_CHARS);
       RBSCountryCode:=Get(API_ATTR_COUNTRYCODE);
-      RBSLanguage:=StripChars(Get(API_ATTR_LANGUAGE));
+      RBSLanguage:=StripChars(Get(API_ATTR_LANGUAGE),RB_JSON_STRIP_CHARS);
       RBSVotes:=Get(API_ATTR_VOTES);
       RBSCodec:=Get(API_ATTR_CODEC);
       RBSBitrate:=Get(API_ATTR_BITRATE);
@@ -323,38 +340,60 @@ var
   LMatches: SizeIntArray;
   LUUID: string;
 begin
-  if FindMatchesBoyerMooreCaseInSensitive(RBStationsUUIDs,AID.Insert(8,'-')+'-',LMatches,False) then
-    try
-      LUUID:=RBStationsUUIDs.Substring(LMatches[0]-1,36);
-      if (RBCacheType=catNone) or (not GetRBStationCache(ARBStation,LUUID,AAVRConfigIdx)) then
-        with TJSONArray(RadiobrowserAPIRequestJSON(API_STATIONS_PATH+API_BYUUID_PATH+LUUID)) do
-          try
-            SetRBStation(ARBStation, Objects[0]);
-          finally
-            Free;
-          end;
-    except
-      on E: Exception do
-        begin
-          ARBStation.RBSID:='';
-          Logging(ltError,'GetRBStationByID error: '+E.Message);
-        end;
-    end
+  if RBCacheType in [catDB, catMemDB, catPermMemDB] then
+    DBRBGetStationByID(ARBStation,AID,AAVRConfigIdx)
   else
-    ARBStation.RBSID:='';
+    if FindMatchesBoyerMooreCaseInSensitive(RBStationsUUIDs,AID.Insert(8,'-')+'-',LMatches,False) then
+      try
+        LUUID:=RBStationsUUIDs.Substring(LMatches[0]-1,36);
+        if (RBCacheType=catNone) or (not GetRBStationCache(ARBStation,LUUID,AAVRConfigIdx)) then
+          with TJSONArray(RadiobrowserAPIRequestJSON(API_STATIONS_PATH+API_BYUUID_PATH+LUUID)) do
+            try
+              SetRBStation(ARBStation, Objects[0]);
+            finally
+              Free;
+            end;
+      except
+        on E: Exception do
+          begin
+            ARBStation.RBSID:='';
+            Logging(ltError,'GetRBStationByID error: '+E.Message);
+          end;
+      end
+    else
+      ARBStation.RBSID:='';
 end;
 
-procedure GetStationsBy(var ARBStations: TRBStations; ARBAllCategoryType: TRBAllCategoryTypes; AName: string; AAVRConfigIdx: integer);
+function GetStationsByCategory(var ARBStations: TRBStations; ARBAllCategoryType: TRBAllCategoryTypes; AName: string; AReq: TRequest): integer;
+var
+  LStart: integer = 0;
+  LHowMany: integer = 0;
+begin
+  GetRange(LStart,LHowMany,AReq.QueryFields);
+  if RBCacheType in [catDB, catMemDB, catPermMemDB] then
+    Result:=DBRBGetStationsByCategory(ARBStations,ARBAllCategoryType,AName,GetAVRConfigIdx(AReq),LStart,LHowMany)
+  else
+    Result:=GetStationsByCategory(ARBStations,ARBAllCategoryType,AName,GetAVRConfigIdx(AReq),LStart,LHowMany);
+end;
+
+
+function GetStationsByCategory(var ARBStations: TRBStations; ARBAllCategoryType: TRBAllCategoryTypes; AName: string; AAVRConfigIdx, AStart, AHowMany: integer): integer;
 var
   LURL: string;
-  LJSONArray: TJSONArray;
-  LJSONEnum: TJSONEnum;
+  LJSONArray: TJSONArray = nil;
+  LItemsFiltered: integer = 0;
+  LItemsAdded: integer = 0;
+  LItemIdx: integer = 0;
   LSortingPath: string;
   LRBStation: TRBStation;
+  LRBStations: TRBStations;
   LCacheName: string;
 begin
+  Result:=0;
   LCacheName:=RBCACHE_STATIONS_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-'+Ord(ARBAllCategoryType).ToString+'-'+Abs(AName.ToLower.GetHashCode).ToString;
-  if (RBCacheType=catNone) or (not GetRBCache(ARBStations,LCacheName,AAVRConfigIdx)) then
+  if RBCacheType in [catFile,catMemStr] then
+    Result:=GetRBCache(ARBStations,LCacheName,AAVRConfigIdx,AStart,AHowMany);
+  if (RBCacheType=catNone) or (Result=0) then
     begin
       with AVRConfigArray[AAVRConfigIdx].RBSort do
         LSortingPath:='?'+API_ORDER_PATH+'='+HTTPEncode(Order)+'&'+API_REVERSE_PATH+'='+Reverse.ToString(TUseBoolStrs.True).ToLower;
@@ -363,115 +402,217 @@ begin
         rbctGenre: LURL:=API_STATIONS_PATH+API_BYTAGEXACT_PATH+AName+LSortingPath;
         rbctCountry: LURL:=API_STATIONS_PATH+API_BYCOUNTRYEXACT_PATH+AName+LSortingPath;
         rbctLanguage: LURL:=API_STATIONS_PATH+API_BYLANGUAGEEXACT_PATH+AName+LSortingPath;
-        rtctPopular: LURL:=API_STATIONS_PATH+API_POPULAR_FILTER_PATH+IntToStr(RBPopularAndSearchStationsLimit);
-        rtctSearch: LURL:=API_STATIONS_PATH+'/'+API_SEARCH_PATH+API_SEARCH_FILTER_PATH+IntToStr(RBPopularAndSearchStationsLimit)+'&'+API_ATTR_NAME+'='+AName;
+        rbctPopular: LURL:=API_STATIONS_PATH+API_POPULAR_FILTER_PATH+IntToStr(RBPopularAndSearchStationsLimit);
+        rbctSearch: LURL:=API_STATIONS_PATH+'/'+API_SEARCH_PATH+API_SEARCH_FILTER_PATH+IntToStr(RBPopularAndSearchStationsLimit)+'&'+API_ATTR_NAME+'='+AName;
       end;
 
       try
         LJSONArray:=TJSONArray(RadiobrowserAPIRequestJSON(LURL+IfThen(HIDE_BROKEN_STATIONS,'&'+API_HIDEBROKEN_FILTER_PATH,'')));
-        if LJSONArray.Count>0 then
-          for LJSONEnum in LJSONArray do
-            if RBStationsAVRFilter(TJSONObject(LJSONEnum.Value),ARBAllCategoryType,AAVRConfigIdx) then
-              with TJSONObject(LJSONEnum.Value) do
-                begin
-                  LRBStation:=TRBStation.Create;
-                  SetRBStation(LRBStation,TJSONObject(LJSONEnum.Value));
-                  ARBStations.AddObject(LRBStation.RBSID,LRBStation);
-                end;
-
-          if RBCacheType<>catNone then
+        try
+          if LJSONArray.Count>0 then
             begin
-              if (ARBStations.Count=0) and (ARBAllCategoryType in [rbctGenre..rbctLanguage]) then
-                RemoveEmptyCategory(ARBAllCategoryType,RBCACHE_CATEGORIES_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-'+Ord(ARBAllCategoryType).ToString,HTTPDecode(AName),AAVRConfigIdx)
-              else
-                SetRBCache(ARBStations,LCacheName,AAVRConfigIdx);
-            end;
-      finally
-        LJSONArray.Free;
+              if RBCacheType in [catFile,catMemStr] then
+                LRBStations:=TRBStations.Create;
+              try
+                while LItemIdx<LJSONArray.Count do
+                  begin
+                    if RBStationsAVRFilter(TJSONObject(LJSONArray[LItemIdx]),ARBAllCategoryType,AAVRConfigIdx) then
+                      begin
+                        with TJSONObject(LJSONArray[LItemIdx]) do
+                          begin
+                            if RBCacheType in [catFile,catMemStr] then
+                              begin
+                                LRBStation:=TRBStation.Create;
+                                SetRBStation(LRBStation,TJSONObject(LJSONArray[LItemIdx]));
+                                LRBStations.AddObject(LRBStation.RBSID,LRBStation);
+                              end;
+                            if (LItemsFiltered>=AStart) and ((LItemsAdded<AHowMany) or (AHowMany<=0)) then
+                              begin
+                                LRBStation:=TRBStation.Create;
+                                SetRBStation(LRBStation,TJSONObject(LJSONArray[LItemIdx]));
+                                ARBStations.AddObject(LRBStation.RBSID,LRBStation);
+                                LItemsAdded:=LItemsAdded+1;
+                              end;
+                          end;
+                        LItemsFiltered:=LItemsFiltered+1;
+                      end;
+                    LItemIdx:=LItemIdx+1;
+                  end;
+                Result:=LItemsFiltered;
+
+                if RBCacheType in [catFile,catMemStr] then
+                  begin
+                    if (LRBStations.Count=0) and (ARBAllCategoryType in [rbctGenre..rbctLanguage]) then
+                      RemoveEmptyCategory(ARBAllCategoryType,RBCACHE_CATEGORIES_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-'+Ord(ARBAllCategoryType).ToString,HTTPDecode(AName),AAVRConfigIdx)
+                    else
+                      SetRBCache(LRBStations,LCacheName,AAVRConfigIdx);
+                  end;
+              finally
+                if RBCacheType in [catFile,catMemStr] then
+                  LRBStations.Free;
+              end;
+            end
+          else
+            if RBCacheType in [catFile,catMemStr] then
+              RemoveEmptyCategory(ARBAllCategoryType,RBCACHE_CATEGORIES_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-'+Ord(ARBAllCategoryType).ToString,HTTPDecode(AName),AAVRConfigIdx);
+        finally
+          if Assigned(LJSONArray) then LJSONArray.Free;
+        end;
+      except
+        on E: Exception do
+          begin
+            Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_ERROR,' ('+E.Message+')']));
+            if Assigned(LJSONArray) then LJSONArray.Free;
+          end;
       end;
+    end;
+end;
+
+function GetRootItems(var ARootCategoryTypesCount: TRBRootCategoryTypesCount; AAVRConfigIdx: integer): integer;
+begin
+  if RBCacheType in [catDB, catMemDB, catPermMemDB] then
+    Result:=DBRBGetRootItems(ARootCategoryTypesCount,AAVRConfigIdx)
+  else
+    begin
+      ARootCategoryTypesCount[rbctGenre]:=GetCategoryItemsCount(rbctGenre,AAVRConfigIdx);
+      ARootCategoryTypesCount[rbctCountry]:=GetCategoryItemsCount(rbctCountry,AAVRConfigIdx);
+      ARootCategoryTypesCount[rbctLanguage]:=GetCategoryItemsCount(rbctLanguage,AAVRConfigIdx);
+      ARootCategoryTypesCount[rbctPopular]:=RBPopularAndSearchStationsLimit;
+      Result:=1;
     end;
 end;
 
 function GetCategoryItemsCount(ARBCategoryType: TRBCategoryTypes; AAVRConfigIdx: integer): integer;
 var
   LJSONArray: TJSONArray = nil;
-  LJSONEnum: TJSONEnum;
+  LItemsFiltered: integer = 0;
+  LItemIdx: integer = 0;
   LRBCategory: TRBCategory;
   LRBCategories: TRBCategories;
   LCacheName: string;
-  i: integer = 0;
 begin
   Result:=0;
-  LCacheName:=RBCACHE_CATEGORIES_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-'+Ord(ARBCategoryType).ToString;
   LRBCategories:=TRBCategories.Create;
   try
-    if (RBCacheType=catNone) or (not GetRBCache(LRBCategories,LCacheName,AAVRConfigIdx)) then
-      begin
-        try
-          LJSONArray:=TJSONArray(RadiobrowserAPIRequestJSON(RB_CATEGORIES_PATH[ARBCategoryType]+IfThen(HIDE_BROKEN_STATIONS,'?'+API_HIDEBROKEN_FILTER_PATH,'')));
-          try
-            if LJSONArray.Count>0 then
-              begin
-                for LJSONEnum in LJSONArray do
-                  if RBCategoriesAVRFilter(TJSONObject(LJSONEnum.Value),ARBCategoryType,AAVRConfigIdx) then
-                    begin
-                      if RBCacheType<>catNone then
-                        with TJSONObject(LJSONEnum.Value) do
-                          begin
-                            LRBCategory:=TRBCategory.Create;
-                            LRBCategory.RBCName:=StripChars(Get(API_ATTR_NAME));
-                            LRBCategory.RBCMaxCount:=Get(API_ATTR_STATIONCOUNT);
-                            LRBCategories.AddObject(LRBCategory.RBCName,LRBCategory);
-                          end;
-                      i:=i+1;
-                    end;
-              end;
-            Result:=i;
-          finally
-            if Assigned(LJSONArray) then LJSONArray.Free;
-          end;
-        except
-          on E: Exception do
-            begin
-              Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_ERROR,' ('+E.Message+')']));
-              if Assigned(LJSONArray) then LJSONArray.Free;
-            end;
-        end;
-
-        if (RBCacheType<>catNone) and (Result>0) then
-          SetRBCache(LRBCategories,LCacheName,AAVRConfigIdx);
-      end
+    if RBCacheType in [catDB, catMemDB, catPermMemDB] then
+      Result:=DBRBGetCategoryItems(LRBCategories,ARBCategoryType,AAVRConfigIdx,0,1)
     else
-      Result:=LRBCategories.Count;
+      begin
+        LCacheName:=RBCACHE_CATEGORIES_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-'+Ord(ARBCategoryType).ToString;
+        if RBCacheType in [catFile,catMemStr] then
+          Result:=GetRBCache(LRBCategories,LCacheName,AAVRConfigIdx,0,1);
+        if (RBCacheType=catNone) or (Result=0) then
+          begin
+            try
+              LJSONArray:=TJSONArray(RadiobrowserAPIRequestJSON(RB_CATEGORIES_PATH[ARBCategoryType]+IfThen(HIDE_BROKEN_STATIONS,'?'+API_HIDEBROKEN_FILTER_PATH,'')));
+              try
+                if LJSONArray.Count>0 then
+                  begin
+                    while LItemIdx<LJSONArray.Count do
+                      begin
+                        if RBCategoriesAVRFilter(TJSONObject(LJSONArray[LItemIdx]),ARBCategoryType,AAVRConfigIdx) then
+                          begin
+                            if RBCacheType in [catFile,catMemStr] then
+                              begin
+                                with TJSONObject(LJSONArray[LItemIdx]) do
+                                  begin
+                                    LRBCategory:=TRBCategory.Create;
+                                    SetRBCategory(LRBCategory,TJSONObject(LJSONArray[LItemIdx]));
+                                    LRBCategories.AddObject(LRBCategory.RBCName,LRBCategory);
+                                  end;
+                              end;
+                            LItemsFiltered:=LItemsFiltered+1;
+                          end;
+                        LItemIdx:=LItemIdx+1;
+                      end;
+                    Result:=LItemsFiltered;
+                    if (RBCacheType in [catFile,catMemStr]) and (LRBCategories.Count>0) then
+                      SetRBCache(LRBCategories,LCacheName,AAVRConfigIdx);
+                  end;
+              finally
+                if Assigned(LJSONArray) then LJSONArray.Free;
+              end;
+            except
+              on E: Exception do
+                begin
+                  Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_ERROR,' ('+E.Message+')']));
+                  if Assigned(LJSONArray) then LJSONArray.Free;
+                end;
+            end;
+          end;
+      end;
   finally
     LRBCategories.Free;
   end;
 end;
 
-procedure GetCategoryItems(var ARBCategories: TRBCategories; ARBCategoryType: TRBCategoryTypes; AAVRConfigIdx: integer);
+function GetCategoryItems(var ARBCategories: TRBCategories; ARBCategoryType: TRBCategoryTypes; AReq: TRequest): integer;
+var
+  LStart: integer = 0;
+  LHowMany: integer = 0;
+begin
+  GetRange(LStart,LHowMany,AReq.QueryFields);
+  if RBCacheType in [catDB, catMemDB, catPermMemDB] then
+    Result:=DBRBGetCategoryItems(ARBCategories,ARBCategoryType,GetAVRConfigIdx(AReq),LStart,LHowMany)
+  else
+    Result:=GetCategoryItems(ARBCategories,ARBCategoryType,GetAVRConfigIdx(AReq),LStart,LHowMany);
+end;
+
+function GetCategoryItems(var ARBCategories: TRBCategories; ARBCategoryType: TRBCategoryTypes; AAVRConfigIdx, AStart, AHowMany: integer): integer;
 var
   LJSONArray: TJSONArray = nil;
-  LJSONEnum: TJSONEnum;
+  LItemsFiltered: integer = 0;
+  LItemsAdded: integer = 0;
+  LItemIdx: integer = 0;
   LRBCategory: TRBCategory;
+  LRBCategories: TRBCategories;
   LCacheName: string;
 begin
+  Result:=0;
   LCacheName:=RBCACHE_CATEGORIES_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-'+Ord(ARBCategoryType).ToString;
-  if (RBCacheType=catNone) or (not GetRBCache(ARBCategories,LCacheName,AAVRConfigIdx)) then
+  if RBCacheType in [catFile,catMemStr] then
+    Result:=GetRBCache(ARBCategories,LCacheName,AAVRConfigIdx,AStart,AHowMany);
+  if (RBCacheType=catNone) or (Result=0) then
     begin
       try
         LJSONArray:=TJSONArray(RadiobrowserAPIRequestJSON(RB_CATEGORIES_PATH[ARBCategoryType]+IfThen(HIDE_BROKEN_STATIONS,'?'+API_HIDEBROKEN_FILTER_PATH,'')));
         try
           if LJSONArray.Count>0 then
             begin
-              for LJSONEnum in LJSONArray do
-                if RBCategoriesAVRFilter(TJSONObject(LJSONEnum.Value),ARBCategoryType,AAVRConfigIdx) then
-                  with TJSONObject(LJSONEnum.Value) do
-                    begin
-                      LRBCategory:=TRBCategory.Create;
-                      LRBCategory.RBCName:=StripChars(Get(API_ATTR_NAME));
-                      LRBCategory.RBCMaxCount:=Get(API_ATTR_STATIONCOUNT);
-                      ARBCategories.AddObject(LRBCategory.RBCName,LRBCategory);
-                    end;
+              if RBCacheType in [catFile,catMemStr] then
+                LRBCategories:=TRBCategories.Create;
+              try
+                while LItemIdx<LJSONArray.Count do
+                  begin
+                    if RBCategoriesAVRFilter(TJSONObject(LJSONArray[LItemIdx]),ARBCategoryType,AAVRConfigIdx) then
+                      begin
+                        with TJSONObject(LJSONArray[LItemIdx]) do
+                          begin
+                            if RBCacheType in [catFile,catMemStr] then
+                              begin
+                                LRBCategory:=TRBCategory.Create;
+                                SetRBCategory(LRBCategory,TJSONObject(LJSONArray[LItemIdx]));
+                                LRBCategories.AddObject(LRBCategory.RBCName,LRBCategory);
+                              end;
+                            if (LItemsFiltered>=AStart) and ((LItemsAdded<AHowMany) or (AHowMany<=0)) then
+                              begin
+                                LRBCategory:=TRBCategory.Create;
+                                SetRBCategory(LRBCategory,TJSONObject(LJSONArray[LItemIdx]));
+                                ARBCategories.AddObject(LRBCategory.RBCName,LRBCategory);
+                                LItemsAdded:=LItemsAdded+1;
+                              end;
+                          end;
+                        LItemsFiltered:=LItemsFiltered+1;
+                      end;
+                    LItemIdx:=LItemIdx+1;
+                  end;
+                Result:=LItemsFiltered;
+                if (RBCacheType in [catFile,catMemStr]) and (LRBCategories.Count>0) then
+                  SetRBCache(LRBCategories,LCacheName,AAVRConfigIdx);
+              finally
+                if RBCacheType in [catFile,catMemStr] then
+                  LRBCategories.Free;
+              end;
             end;
         finally
           if Assigned(LJSONArray) then LJSONArray.Free;
@@ -483,9 +624,6 @@ begin
             if Assigned(LJSONArray) then LJSONArray.Free;
           end;
       end;
-
-      if (RBCacheType<>catNone) and (ARBCategories.Count>0) then
-        SetRBCache(ARBCategories,LCacheName,AAVRConfigIdx);
     end;
 end;
 
@@ -531,7 +669,7 @@ begin
           if (Length(AllowedTags)>0) and (not HaveCommonElements(IfThen(Get(API_ATTR_TAGS)='',AVR_FILTER_EMPTY,Get(API_ATTR_TAGS)),AllowedTags)) then Result:=False else
           if (Length(NotAllowedTags)>0) and (HaveCommonElements(IfThen(Get(API_ATTR_TAGS)='',AVR_FILTER_EMPTY,Get(API_ATTR_TAGS)),NotAllowedTags)) then Result:=False else
           if (Length(AllowedCountries)>0) and (not HaveCommonElements(IfThen(Get(API_ATTR_COUNTRY)='',AVR_FILTER_EMPTY,Get(API_ATTR_COUNTRY)),AllowedCountries)) then Result:=False;
-        rtctPopular:
+        rbctPopular:
           if (Length(AllowedTags)>0) and (not HaveCommonElements(IfThen(Get(API_ATTR_TAGS)='',AVR_FILTER_EMPTY,Get(API_ATTR_TAGS)),AllowedTags)) then Result:=False else
           if (Length(NotAllowedTags)>0) and (HaveCommonElements(IfThen(Get(API_ATTR_TAGS)='',AVR_FILTER_EMPTY,Get(API_ATTR_TAGS)),NotAllowedTags)) then Result:=False else
           if (Length(AllowedCountries)>0) and (not HaveCommonElements(IfThen(Get(API_ATTR_COUNTRY)='',AVR_FILTER_EMPTY,Get(API_ATTR_COUNTRY)),AllowedCountries)) then Result:=False else
@@ -550,12 +688,12 @@ begin
     end;
 end;
 
-function GetRBCache(var ARBObjectsList: TRBObjectsList; ACacheName: string; AAVRConfigIdx: integer):boolean;
+function GetRBCache(var ARBObjectsList: TRBObjectsList; ACacheName: string; AAVRConfigIdx, AStart, AHowMany: integer): integer;
 var
   LCacheIdx: integer;
   LCacheFileName: string;
 begin
-  Result:=False;
+  Result:=0;
   LCacheIdx:=RBCache.IndexOf(ACacheName);
   if LCacheIdx>=0 then
     begin
@@ -564,41 +702,33 @@ begin
                       LCacheFileName:=CachePath+DirectorySeparator+ACacheName+'-'+AVRConfigArray[AAVRConfigIdx].CRC32.ToString+CACHE_EXT;
                       if FileExists(LCacheFileName) then
                         begin
-                          if FileDateToDateTime(FileAge(LCacheFileName))+(RBCacheTTL/24)<Now then
+                          if (RBCacheTTL>0) and (FileDateToDateTime(FileAge(LCacheFileName))+(RBCacheTTL/24)<Now) then
                             begin
                               Logging(ltInfo, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_FILETYPE,MSG_CACHE,MSG_RBCACHE_TTLEXPRELOAD,ACacheName]));
                               Exit;
                             end;
-                          Result:=LoadRBObjects(ARBObjectsList,LCacheFileName);
+                          Result:=LoadRBObjects(ARBObjectsList,LCacheFileName,AStart,AHowMany);
                         end
                       else
                         Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_FILETYPE,'no file',MSG_CACHE,ACacheName]));
                    end;
         catMemStr: with TRBCacheObject(RBCache.Objects[LCacheIdx]) do
                      begin
-                       if CRBEOL<Now then
+                       if (CRBEOL>0) and (CRBEOL<Now) then
                          begin
                            Logging(ltInfo, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_MEMSTRTYPE,MSG_CACHE,MSG_RBCACHE_TTLEXPRELOAD,ACacheName]));
                            Exit;
                          end;
-                       Result:=LoadRBObjects(ARBObjectsList,CRBRecords);
+                       Result:=LoadRBObjects(ARBObjectsList,CRBRecords,AStart,AHowMany);
                      end;
       end;
-      if Result then
-        begin
-          if ARBObjectsList.Count>0 then
-            Logging(ltDebug, string.Join(' ',[MSG_CACHE,MSG_LOADED,ACacheName]))
-          else
-            begin
-              Result:=False;
-              Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_CACHE,MSG_EMPTY,ACacheName]));
-            end;
-        end
+      if Result>0 then
+        Logging(ltDebug, string.Join(' ',[MSG_CACHE,MSG_LOADED,ACacheName]))
       else
-        Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_CACHE,MSG_ERROR,ACacheName]));
-
-      if not Result then
-        RBCache.Delete(LCacheIdx);
+        begin
+          Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_CACHE,MSG_EMPTY,ACacheName]));
+          RBCache.Delete(LCacheIdx);
+        end;
     end;
 end;
 
@@ -631,7 +761,10 @@ begin
                       Result:=SaveRBObjects(ARBObjectsList,LRBCacheObject.CRBRecords);
                       if Result then
                         begin
-                          LRBCacheObject.CRBEOL:=Now+RBCacheTTL/24;
+                          if RBCacheTTL<=0 then
+                            LRBCacheObject.CRBEOL:=0
+                          else
+                            LRBCacheObject.CRBEOL:=Now+RBCacheTTL/24;
                           if LCacheIdx<0 then
                             RBCache.AddObject(ACacheName,LRBCacheObject)
                           else
@@ -667,7 +800,6 @@ var
   LCacheIdx: integer;
   LCacheName, LCacheFileName: string;
   LRBStations: TRBStations;
-  LIdx: integer;
 begin
   Result:=False;
   LCacheIdx:=0;
@@ -677,21 +809,17 @@ begin
                  if LCacheName.StartsWith(RBCACHE_STATIONS_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-') then
                    begin
                      LCacheFileName:=CachePath+DirectorySeparator+LCacheName+'-'+AVRConfigArray[AAVRConfigIdx].CRC32.ToString+CACHE_EXT;
-                     if (FileExists(LCacheFileName)) and (FileDateToDateTime(FileAge(LCacheFileName))+(RBCacheTTL/24) > Now) and (string(GetFileAsString(LCacheFileName)).Contains(AUUID)) then
+                     if (FileExists(LCacheFileName)) and ((RBCacheTTL<=0) or (FileDateToDateTime(FileAge(LCacheFileName))+(RBCacheTTL/24) > Now)) and (string(GetFileAsString(LCacheFileName)).Contains(AUUID)) then
                        begin
                          LRBStations:=TRBStations.Create;
                          try
                            try
-                             if LoadRBObjects(LRBStations,LCacheFileName) then
+                             if LoadRBObjects(LRBStations,LCacheFileName,0,0,AUUID)=1 then
                                begin
-                                 LIdx:=LRBStations.IndexOf(AUUID);
-                                 if LIdx>0 then
-                                   begin
-                                     ARBStation.Assign(TRBStation(LRBStations.Objects[LIdx]));
-                                     Logging(ltDebug, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_FILETYPE,MSG_CACHE,MSG_LOADED,LCacheName]));
-                                     Result:=True;
-                                     Exit;
-                                   end;
+                                 ARBStation.Assign(TRBStation(LRBStations.Objects[0]));
+                                 Logging(ltDebug, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_FILETYPE,MSG_CACHE,MSG_LOADED,LCacheName]));
+                                 Result:=True;
+                                 Exit;
                                end;
                            except
                              on E: Exception do
@@ -704,21 +832,17 @@ begin
                  end;
       catMemStr: for LCacheName in RBCache do
                    begin
-                     if (LCacheName.StartsWith(RBCACHE_STATIONS_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-')) and (TRBCacheObject(RBCache.Objects[LCacheIdx]).CRBEOL > Now) and (string(TRBCacheObject(RBCache.Objects[LCacheIdx]).CRBRecords).Contains(AUUID)) then
+                     if (LCacheName.StartsWith(RBCACHE_STATIONS_PREFIX+AVRMACsArray[AAVRConfigIdx]+'-')) and ((TRBCacheObject(RBCache.Objects[LCacheIdx]).CRBEOL <= 0) or (TRBCacheObject(RBCache.Objects[LCacheIdx]).CRBEOL > Now)) and (string(TRBCacheObject(RBCache.Objects[LCacheIdx]).CRBRecords).Contains(AUUID)) then
                        begin
                          LRBStations:=TRBStations.Create;
                          try
                            try
-                             if LoadRBObjects(LRBStations,TRBCacheObject(RBCache.Objects[LCacheIdx]).CRBRecords) then
+                             if LoadRBObjects(LRBStations,TRBCacheObject(RBCache.Objects[LCacheIdx]).CRBRecords,0,0,AUUID)=1 then
                                begin
-                                 LIdx:=LRBStations.IndexOf(AUUID);
-                                 if LIdx>0 then
-                                   begin
-                                     ARBStation.Assign(TRBStation(LRBStations.Objects[LIdx]));
-                                     Logging(ltDebug, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_MEMSTRTYPE,MSG_CACHE,MSG_LOADED,LCacheName]));
-                                     Result:=True;
-                                     Exit;
-                                   end;
+                                 ARBStation.Assign(TRBStation(LRBStations.Objects[0]));
+                                 Logging(ltDebug, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_MEMSTRTYPE,MSG_CACHE,MSG_LOADED,LCacheName]));
+                                 Result:=True;
+                                 Exit;
                                end;
                            except
                              on E: Exception do
@@ -751,7 +875,7 @@ begin
                       LRBCategories:=TRBCategories.Create;
                       try
                         try
-                          if LoadRBObjects(LRBCategories,LCacheFileName) then
+                          if LoadRBObjects(LRBCategories,LCacheFileName,0,0)>0 then
                             begin
                               LIdx:=LRBCategories.IndexOf(AName);
                               if LIdx>0 then
@@ -776,7 +900,7 @@ begin
                     LRBCategories:=TRBCategories.Create;
                     try
                       try
-                        if LoadRBObjects(LRBCategories,CRBRecords) then
+                        if LoadRBObjects(LRBCategories,CRBRecords,0,0)>0 then
                           begin
                             LIdx:=LRBCategories.IndexOf(AName);
                             if LIdx>0 then
@@ -796,17 +920,17 @@ begin
     end;
 end;
 
-function LoadRBObjects(ARBObjectsList: TRBObjectsList; AFileName: string): boolean;
+function LoadRBObjects(ARBObjectsList: TRBObjectsList; AFileName: string; AStart, AHowMany: integer; AObjectName: string = ''): integer;
 var
   LCacheStream: TRawByteStringStream;
 begin
-  Result:=False;
+  Result:=0;
   LCacheStream:=TRawByteStringStream.Create;
   try
     try
       LCacheStream.LoadFromFile(AFileName);
       if LCacheStream.Size>0 then
-        Result:=DeSerializeRBObjects(ARBObjectsList,LCacheStream)
+        Result:=DeSerializeRBObjects(ARBObjectsList,LCacheStream,AStart,AHowMany,AObjectName)
       else
         Logging(ltDebug, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_FILETYPE,MSG_CACHE,MSG_EMPTY,MSG_STREAM]));
     except
@@ -818,17 +942,17 @@ begin
   end;
 end;
 
-function LoadRBObjects(ARBObjectsList: TRBObjectsList; ACRBObjects: RawByteString): boolean;
+function LoadRBObjects(ARBObjectsList: TRBObjectsList; ACRBObjects: RawByteString; AStart, AHowMany: integer; AObjectName: string = ''): integer;
 var
   LCacheStream: TRawByteStringStream;
 begin
-  Result:=False;
+  Result:=0;
   LCacheStream:=TRawByteStringStream.Create;
   try
     try
       LCacheStream.WriteString(ACRBObjects);
       if LCacheStream.Size>0 then
-        Result:=DeSerializeRBObjects(ARBObjectsList,LCacheStream)
+        Result:=DeSerializeRBObjects(ARBObjectsList,LCacheStream,AStart,AHowMany,AObjectName)
       else
         Logging(ltDebug, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_RBCACHE_MEMSTRTYPE,MSG_CACHE,MSG_EMPTY,MSG_STREAM]));
     except
@@ -933,7 +1057,7 @@ begin
             SetStrValue(RBSCodec);
             SetStrValue(RBSBitrate);
           end
-    else    // TRBCategory
+    else
       for LListIdx:=0 to LListLen-1 do
         with TRBCategory(ARBObjectsList.Objects[LListIdx]) do
           begin
@@ -948,12 +1072,14 @@ begin
   end;
 end;
 
-function DeSerializeRBObjects(ARBObjectsList: TRBObjectsList; var ACacheStream: TRawByteStringStream): boolean;
+function DeSerializeRBObjects(ARBObjectsList: TRBObjectsList; var ACacheStream: TRawByteStringStream; AStart, AHowMany: integer; AObjectName: string = ''): integer;
 var
-  LListLen, LListIdx: LongWord;
+  LListIdx: LongWord = 0;
+  LIdx: LongWord;
   LCacheType: AnsiChar;
   LRBStation: TRBStation;
   LRBCategory: TRBCategory;
+  LObjectFound: boolean = False;
 
   procedure GetStrValue(var AStrValue: string);
   var
@@ -964,52 +1090,115 @@ var
       AStrValue:=ACacheStream.ReadString(LLen);
   end;
 
+  procedure GetIntValue(var AIntValue: integer);
+  begin
+    ACacheStream.Read(AIntValue,SizeOf(integer));
+  end;
+
+  procedure StrDummyRead;
+  var
+    LLen: Word;
+    LDummyValue: string;
+  begin
+    ACacheStream.Read(LLen,SizeOf(Word));
+    if LLen>0 then
+      LDummyValue:=ACacheStream.ReadString(LLen);
+  end;
+
+  procedure IntDummyRead;
+  var
+    LDummyValue: integer;
+  begin
+    ACacheStream.Read(LDummyValue,SizeOf(integer));
+  end;
+
 begin
-  Result:=False;
+  Result:=0;
   try
     ACacheStream.Position:=0;
     ACacheStream.Read(LCacheType,SizeOf(Byte));
-    ACacheStream.Read(LListLen,SizeOf(LongWord));
+    ACacheStream.Read(Result,SizeOf(LongWord));
+    if (AStart=0) and (AHowMany<=0) then
+      AHowMany:=Result
+    else
+      if AStart+AHowMany>Result then
+        AHowMany:=Result-AStart;
     case LCacheType of
-      'S' : for LListIdx:=0 to LListLen-1 do
+      'S' : while (LListIdx<AStart+AHowMany) and (not LObjectFound) do
               begin
-                LRBStation:=TRBStation.Create;
-                with LRBStation do
+                if LListIdx>=AStart then
                   begin
-                    GetStrValue(RBSID);
-                    GetStrValue(RBSName);
-                    GetStrValue(RBSHomePageURL);
-                    GetStrValue(RBSURL);
-                    GetStrValue(RBSIcon);
-                    GetStrValue(RBSTags);
-                    GetStrValue(RBSCountry);
-                    GetStrValue(RBSCountryCode);
-                    GetStrValue(RBSLanguage);
-                    GetStrValue(RBSVotes);
-                    GetStrValue(RBSCodec);
-                    GetStrValue(RBSBitrate);
-                    ARBObjectsList.AddObject(RBSID,LRBStation);
-                  end;
+                    LRBStation:=TRBStation.Create;
+                    with LRBStation do
+                      begin
+                        GetStrValue(RBSID);
+                        GetStrValue(RBSName);
+                        GetStrValue(RBSHomePageURL);
+                        GetStrValue(RBSURL);
+                        GetStrValue(RBSIcon);
+                        GetStrValue(RBSTags);
+                        GetStrValue(RBSCountry);
+                        GetStrValue(RBSCountryCode);
+                        GetStrValue(RBSLanguage);
+                        GetStrValue(RBSVotes);
+                        GetStrValue(RBSCodec);
+                        GetStrValue(RBSBitrate);
+                      end;
+                    if (AObjectName='') or (AObjectName=LRBStation.RBSID) then
+                      begin
+                        ARBObjectsList.AddObject(LRBStation.RBSID,LRBStation);
+                        if AObjectName<>'' then
+                          begin
+                            LObjectFound:=True;
+                            Result:=1;
+                          end;
+                      end
+                    else
+                      FreeAndNil(LRBStation);
+                  end
+                else
+                  for LIdx:=1 to 12 do StrDummyRead;
+                LListIdx:=LListIdx+1;
               end;
-      'C' : for LListIdx:=0 to LListLen-1 do
+      'C' : while (LListIdx<AStart+AHowMany) and (not LObjectFound) do
               begin
-                LRBCategory:=TRBCategory.Create;
-                with LRBCategory do
+                if LListIdx>=AStart then
                   begin
-                    GetStrValue(RBCName);
-                    ACacheStream.Read(RBCMaxCount,SizeOf(integer));
-                    ARBObjectsList.AddObject(RBCName,LRBCategory);
+                    LRBCategory:=TRBCategory.Create;
+                    with LRBCategory do
+                      begin
+                        GetStrValue(RBCName);
+                        GetIntValue(RBCMaxCount);
+                      end;
+                    if (AObjectName='') or (AObjectName=LRBCategory.RBCName) then
+                      begin
+                        ARBObjectsList.AddObject(LRBCategory.RBCName,LRBCategory);
+                        if AObjectName<>'' then
+                          begin
+                            LObjectFound:=True;
+                            Result:=1;
+                          end;
+                      end
+                    else
+                      FreeAndNil(LRBCategory);
+                  end
+                else
+                  begin
+                    StrDummyRead;
+                    IntDummyRead;
                   end;
+                LListIdx:=LListIdx+1;
               end;
     end;
-    Result:=True;
+    if (AObjectName<>'') and (not LObjectFound) then
+      Result:=0;
   except
     on E: Exception do
       Logging(ltError, string.Join(' ',[{$I %CURRENTROUTINE%},MSG_CACHE,MSG_ERROR,' ('+E.Message+')']));
   end;
 end;
 
-function LoadRBCacheFilesInfo(AAVRConfigIdx: integer): boolean;
+procedure LoadRBCacheFilesInfo(AAVRConfigIdx: integer);
 var
   LCacheFile: string;
   LCacheFiles: TStringList;
@@ -1020,7 +1209,7 @@ begin
       begin
         Logging(ltInfo, string.Join(' ',[MSG_LOADING,AVRMACsArray[AAVRConfigIdx],MSG_CACHE]) );
         for LCacheFile in LCacheFiles do
-          if FileDateToDateTime(FileAge(LCacheFile))+(RBCacheTTL/24)>Now then
+          if (RBCacheTTL<=0) or (FileDateToDateTime(FileAge(LCacheFile))+(RBCacheTTL/24)>Now) then
             RBCache.Add(StringReplace(ExtractFileName(LCacheFile),'-'+AVRConfigArray[AAVRConfigIdx].CRC32.ToString+CACHE_EXT,'',[]))
           else
             DeleteFile(LCacheFile);
@@ -1042,7 +1231,7 @@ begin
       begin
         Logging(ltDebug, string.Join(' ',[MSG_REMOVING,'old',MSG_CACHE]) );
         for LCacheFile in LCacheFiles do
-          if FileDateToDateTime(FileAge(LCacheFile))+(RBCacheTTL/24)<Now then
+          if (RBCacheTTL>0) and (FileDateToDateTime(FileAge(LCacheFile))+(RBCacheTTL/24)<Now) then
             DeleteFile(LCacheFile);
       end;
   finally

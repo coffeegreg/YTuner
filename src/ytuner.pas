@@ -23,7 +23,7 @@ uses
   openssl, opensslsockets,
   {$ENDIF}
   regexpr, my_stations, vtuner, httpserver, radiobrowser, common, bookmark,
-  dnsserver, threadtimer, avr, maintenance;
+  dnsserver, threadtimer, avr, maintenance, radiobrowserdb;
 
 // {$DEFINE FREE_ON_FINAL}
 // Enable the FREE_ON_FINAL directive in IdCompilerDefines.inc of Indy library to remove standard (ie, intentional) Indy memory leaks.
@@ -35,9 +35,20 @@ begin
   GetRBStationsUUIDs;
 end;
 
-procedure RBStationsRefreshOnTimer(Sender: TObject);
+procedure RBStationsUUIDsRefreshOnTimer(Sender: TObject);
 begin
   BeginThread(@GetRBStationsUUIDsThread);
+end;
+
+function DBRBPrepareThread(AP:Pointer):PtrInt;
+begin
+  if DBRBPrepare then
+    DBRBCheckAVRView(0);
+end;
+
+procedure RBStationsDBRefreshOnTimer(Sender: TObject);
+begin
+  BeginThread(@DBRBPrepareThread);
 end;
 
 function ReadMyStations: boolean;
@@ -91,7 +102,7 @@ procedure ReadINIConfiguration;
 var
   LToken: string;
   LRBCacheTypeIdx: integer;
-  LCacheFolderLocation, LConfigFolderLocation: string;
+  LCacheFolderLocation, LConfigFolderLocation, LDBFolderLocation: string;
 begin
   with TIniFile.Create(MyAppPath+'ytuner.ini') do
     try
@@ -121,9 +132,17 @@ begin
         ConfigPath:=ConfigPath+DirectorySeparator;
       ConfigPath:=ConfigPath+PATH_CONFIG;
 
+      LDBFolderLocation:=ReadString(INI_CONFIGURATION,'DBFolderLocation',DBPath);
+      DBPath:=IfThen(LDBFolderLocation=DEFAULT_STRING,MyAppPath,LDBFolderLocation);
+      if not DBPath.EndsWith(DirectorySeparator) then
+        DBPath:=DBPath+DirectorySeparator;
+      DBPath:=DBPath+PATH_DB;
+
+      DBLibFile:=TryToFindSQLite3Lib(ReadString(INI_CONFIGURATION,'DBLibFile',DBLibFile));
+
       with TRegexpr.Create do
         try
-         Expression:='^[A-F 0-9]{16,16}$';
+         Expression:='^[A-F a-f 0-9]{16,16}$';
          if Exec(LToken) then
            MyToken:=LToken;
         finally
@@ -140,6 +159,7 @@ begin
       RBUUIDsCacheTTL:=ReadInteger(INI_RADIOBROWSER,'RBUUIDsCacheTTL',RBUUIDsCacheTTL);
       RBUUIDsCacheAutoRefresh:=ReadBool(INI_RADIOBROWSER,'RBUUIDsCacheAutoRefresh',False);
       RBCacheTTL:=ReadInteger(INI_RADIOBROWSER,'RBCacheTTL',RBCacheTTL);
+      if RBCacheTTL<0 then RBCacheTTL:=0;
       if ReadString(INI_RADIOBROWSER,'RBCacheType','') <> '' then
         begin
           LRBCacheTypeIdx:=GetEnumValue(TypeInfo(TCacheType),ReadString(INI_RADIOBROWSER,'RBCacheType','catFile'));
@@ -211,41 +231,85 @@ begin
   MyAppPath:=ProgramDirectory;
   Writeln(APP_NAME+' v'+APP_VERSION+' '+APP_COPYRIGHT);
   ReadINIConfiguration;
+
   if not DirectoryExists(CachePath) then CreateDir(CachePath);
   if not DirectoryExists(ConfigPath) then CreateDir(ConfigPath);
   if DirectoryExists(ConfigPath) then MoveConfigFiles;
-  ReadAVRINIConfiguration('avr');
+  ReadAVRINIConfiguration(AVR_AVR);
 
   Logging(ltInfo, 'Starting services..');
   {$IFDEF USESSL}
   if UseSSL then InitSSLInterface;
   {$ENDIF USESSL}
 
-  if RadioBrowserEnabled then
-    if not LoadRBStationsUUIDs then
-      BeginThread(@GetRBStationsUUIDsThread);
-
   if MyStationsEnabled then
     CheckMyStationsThread(nil);
 
   RemoveOldRBCacheFiles;
-  if RBCacheType<>catNone then
-    begin
-      RBCache:=TRBCache.Create;
-      if RBCacheType=catMemStr then
-        RBCache.OwnsObjects:=True
-      else
-        LoadRBCacheFilesInfo(0);
-    end;
 
-  if RadioBrowserEnabled and RBUUIDsCacheAutoRefresh and (RBUUIDsCacheTTL>0) then
+  if RadioBrowserEnabled then
     begin
-      RBThread:=TThreadTimer.Create(RB_THREAD);
-      with RBThread do
+      if RBCacheType in [catDB, catMemDB, catPermMemDB] then
         begin
-          Interval:=RBUUIDsCacheTTL*3600000;
-          OnTimer:=@RBStationsRefreshOnTimer;
-          StartTimer;
+          if (not DirectoryExists(DBPath)) and (not CreateDir(DBPath)) then
+            begin
+              Logging(ltWarning, string.Join(' ',[MSG_RBDB_CANNOT,MSG_RBDB_CREATE,MSG_RBDB_DB,MSG_DIRECTORY,DBPath]));
+              RBCacheType:=catFile;
+            end
+          else
+            if DBLibFile.IsEmpty then
+              begin
+                Logging(ltWarning, string.Join(' ',[MSG_RBDB_DB,MSG_RBDB_LIBRARY,MSG_NOT_FOUND]));
+                RBCacheType:=catFile;
+              end
+            else
+              if LoadSQLite3Lib and CheckSQLite3LibVer and DBRBPrepare then
+                begin
+                  if not DBRBCheckAVRView(0) then
+                    RBCacheType:=catFile
+                  else
+                    if RBCacheTTL>0 then
+                      begin
+                        RBThread:=TThreadTimer.Create(RB_THREAD);
+                        with RBThread do
+                          begin
+                            Interval:=RBCacheTTL*3600000;
+                            OnTimer:=@RBStationsDBRefreshOnTimer;
+                            StartTimer;
+                          end;
+                      end;
+                end
+              else
+                begin
+                  Logging(ltWarning, string.Join(' ',[MSG_RBDB_DB,MSG_RBDB_PREPARING,MSG_ERROR]));
+                  RBCacheType:=catFile;
+                end;
+         if RBCacheType=catFile then
+           Logging(ltWarning, string.Join(' ',[MSG_CHANGING,MSG_CACHE,'to "catFile"']));
+        end;
+
+      if RBCacheType in [catNone, catFile, catMemStr] then
+        begin
+          if not LoadRBStationsUUIDs then
+            BeginThread(@GetRBStationsUUIDsThread);
+          if RBCacheType<>catNone then
+            begin
+              RBCache:=TRBCache.Create;
+              if RBCacheType=catMemStr then
+                RBCache.OwnsObjects:=True
+              else
+                LoadRBCacheFilesInfo(0);
+            end;
+          if RBUUIDsCacheAutoRefresh and (RBUUIDsCacheTTL>0) then
+            begin
+              RBThread:=TThreadTimer.Create(RB_THREAD);
+              with RBThread do
+                begin
+                  Interval:=RBUUIDsCacheTTL*3600000;
+                  OnTimer:=@RBStationsUUIDsRefreshOnTimer;
+                  StartTimer;
+                end;
+            end;
         end;
     end;
 

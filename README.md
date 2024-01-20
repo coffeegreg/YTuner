@@ -32,7 +32,9 @@ YTuner supports :
 * Optional SSL support for YTuner HTTPS web request.
 * Radio stations logo images conversion/resize on the fly with couple of supported image formats (JPG,PNG,GIF,TIFF-optional) 
 * Radio stations logo images optional cache.
-* Radio browser UUIDs, data structures and stations cache (based on files or RAM storage) with optional auto refresh.
+* Radio-browser extensive caching with many options and auto refresh
+  * UUIDs, data structures and stations cache (based on files or RAM storage).
+  * Local DB based full cache of Radio-browser resources.
 * Radio browser advanced filtering and sorting (single config for many AVRs or dedicated configs for each AVR (if you own more then one))
 
 YTuner also has build in :
@@ -60,7 +62,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon AVR-X3300W (Tested by [citronalco](https://github.com/citronalco). Thank you.)
 
 ## Installation
-YTuner is a standalone application and in most cases it does not require additional services, frameworks, packages, virtual machines, libraries or tools to run properly (except optional OpenSSL libraries).
+YTuner is a standalone application and in most cases it does not require additional services, frameworks, packages, virtual machines, libraries or tools to run properly (except optional OpenSSL and/or SQLite3 libraries).
 You can download from [Releases](https://github.com/coffeegreg/YTuner/releases) a file specific to your operating system and CPU architecture or build YTuner from source (look at [Build](README.md#build) section).
 
 After download (or build) save and extract files into prepared directory with granted read/write/execute privileges.
@@ -79,13 +81,15 @@ Now, you should have directory with some of the following subdirectories and fil
  |-- cache (subdir for cache files)
    |-- rbuuids.txt (Radio browser UUIDs cache file)
    |-- ...... (other cache files)
+ |-- db (subdir for databse cache file)
+   |-- rb.db (Radio browser database cache file)
  |-- ytuner (or ytuner.exe for Windows)
  |-- ytuner.ini (YTuner important config file)
 ```
  Do not forget to add execute privileges to `ytuner` on linux/*nix systems with a command like `chmod +x ytuner`.  
 
 
-### OpenSSL
+### OpenSSL (optional)
 If you want to use SSL to support YTuner HTTPS web request you have to get OpenSSL libraries.
 - Most linux/*nix systems install OpenSSL by default. Otherwise, use your favorite package manager to get OpenSSL libraries or download them from [Github](https://github.com/openssl/openssl) or visit [OpenSSL Wiki](https://wiki.openssl.org/index.php/Binaries) for binary distributions source.   
 - Windows users can download them from [Github](https://github.com/openssl/openssl) (follow [NOTES-WINDOWS.md](https://github.com/openssl/openssl/blob/master/NOTES-WINDOWS.md) instructions) or visit [OpenSSL Wiki](https://wiki.openssl.org/index.php/Binaries) for binary distributions source.
@@ -93,16 +97,24 @@ Make sure to get/build the correct version of the OpenSSL libraries with the cor
 Finally, you should have 2 files:
   * OpenSSL 1.0.2 and earlier:
      + `ssleay32.dll` (or `libssl32.dll`) and `libeay32.dll`
-  * OpenSSL 1.1.0 and above:
+  * OpenSSL 1.1.x:
      + 64-bit: `libssl-1_1-x64.dll` and `libcrypto-1_1-x64.dll`
      + 32-bit: `libssl-1_1.dll` and `libcrypto-1_1.dll`
-  * OpenSSL 3.0.0 and above:
+  * OpenSSL 3.x.x:
      + 64-bit: `libssl-3-x64.dll` and `libcrypto-3-x64.dll`
      + 32-bit: `libssl-3.dll` and `libcrypto-3.dll`
 
 and place them in your `ytuner` directory or anywhere in your system `PATH`.
 Make sure your system has valid CA certificates.
 >Tip: The YTuner should work with LibreSSL libraries as well.
+
+### SQLite3 (optional)
+If you want to forget about potential connection problems with `Radio-browser.info` while using YTuner and listening to your favorite stations, use one of the options `[catDB, catMemDB, catPermMemDB]` of the `RBCacheType` parameter in the ytuner.ini file to download the full contents of the `Radio-browser.info` resources once and store it in your local SQLite3 database.
+Of course, only data that is useful for YTuner and AVR devices is downloaded and stored locally.
+Due to the use of the very popular SQLite database, YTuner will need to use the library provided by the SQLite development team.
+>! Important ! : Minimal version of SQLite library is 3.33.0 (2020-08-14)
+
+> If you faced problems with the SQLite library, read [this](doc/SQLITE.md) description.
 
 ## Configuration
 
@@ -181,27 +193,12 @@ If you credentials meet all requirements mentioned above just go to your ytuner 
 ```
 $ sudo ./ytuner
 ```
-If you `MessageInfoLevel` parameter from `ytuner.ini` has a value greater then 0 and Radio-browser.info with stations list local file support are enabled, you should see something like this :
-```
-2023-04-25 20:36:38 : Inf : Starting services...
-2023-04-25 20:36:38 : Inf : Getting Radio-browser.info UUIDs...
-2023-04-25 20:36:38 : Inf : Successfully loaded 10 my stations.
-2023-04-25 20:36:38 : Inf : DNS server listening on: 192.168.1.2:53.
-2023-04-25 20:36:38 : Inf : Web server listening on: 192.168.1.2:80.
-2023-04-25 20:36:42 : Inf : Successfully downloaded 37542 RB UUIDs.
-2023-04-25 20:36:42 : Inf : Successfully saved 37542 RB UUIDs to cache file.
-```
-Now you can see Radio-browser.info cache file `rbuuids.txt` in your ytuner directory.  
-If you have enabled the radio station icon cache `IconCache=1` and started browsing radio stations with your AVR, you can see the `cache` subdirectory and the files inside.  
-If you AVR support bookmarks and you add some station(s) you should see bookmark file(s).  
-It is possible to add or remove stations from one AVR and use this bookmark as a catalogue in another AVR (even without bookmark support).
-
 ## Build
 You can use [CodeTyphon Studio](https://www.pilotlogic.com) or [Lazarus Free Pascal RAD IDE](https://www.lazarus-ide.org/) to build YTuner.  
 Use the latest versions of these IDE. Relevant project files are included.
 
 ### Dependencies
-YTuner uses [Indy - Internet Direct](https://github.com/IndySockets/Indy) library to build its own binary files. Of course, YTuner binaries no longer need any additional libraries beyond the optional OpenSSL.
+YTuner uses [Indy - Internet Direct](https://github.com/IndySockets/Indy) library to build its own binary files. Of course, YTuner binaries no longer need any additional libraries beyond the optional OpenSSL and/or SQLite3.
 >Important: Use the latest version of Indy library to build YTuner.
 
 ## Summary
