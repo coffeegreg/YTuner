@@ -109,7 +109,7 @@ Make sure your system has valid CA certificates.
 >Tip: The YTuner should work with LibreSSL libraries as well.
 
 ### SQLite3 (optional)
-If you want to forget about potential connection problems with `Radio-browser.info` while using YTuner and listening to your favorite stations, use one of the options `[catDB, catMemDB, catPermMemDB]` of the `RBCacheType` parameter in the ytuner.ini file to download the full contents of the `Radio-browser.info` resources once and store it in your local SQLite3 database.
+If you want to forget about potential connection problems with `Radio-browser.info` while using YTuner and listening to your favorite stations, use one of the options `[catDB, catMemDB, catPermMemDB]` of the `RBCacheType` parameter in the `ytuner.ini` file to download the full contents of the `Radio-browser.info` resources once and store it in your local SQLite3 database.
 Of course, only data that is useful for YTuner and AVR devices is downloaded and stored locally.
 Due to the use of the very popular SQLite database, YTuner will need to use the library provided by the SQLite development team.
 >! Important ! : Minimal version of SQLite library is 3.33.0 (2020-08-14)
