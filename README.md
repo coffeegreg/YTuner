@@ -114,7 +114,7 @@ Of course, only data that is useful for YTuner and AVR devices is downloaded and
 Due to the use of the very popular SQLite database, YTuner will need to use the library provided by the SQLite development team.
 >! Important ! : Minimal version of SQLite library is 3.33.0 (2020-08-14)
 
-> If you faced problems with the SQLite library, read [this](doc/SQLITE.md) description.
+>Tip: If you faced problems with the SQLite library, read [this](doc/SQLITE.md) description.
 
 ## Configuration
 
