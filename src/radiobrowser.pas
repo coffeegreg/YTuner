@@ -371,7 +371,7 @@ var
 begin
   GetRange(LStart,LHowMany,AReq.QueryFields);
   if RBCacheType in [catDB, catMemDB, catPermMemDB] then
-    Result:=DBRBGetStationsByCategory(ARBStations,ARBAllCategoryType,AName,GetAVRConfigIdx(AReq),LStart,LHowMany)
+    Result:=DBRBGetStationsByCategory(ARBStations,ARBAllCategoryType,HTTPDecode(AName),GetAVRConfigIdx(AReq),LStart,LHowMany)
   else
     Result:=GetStationsByCategory(ARBStations,ARBAllCategoryType,AName,GetAVRConfigIdx(AReq),LStart,LHowMany);
 end;

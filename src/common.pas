@@ -20,7 +20,7 @@ type
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.2.0';
+  APP_VERSION = '1.2.1';
   APP_COPYRIGHT = 'Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)';
   INI_VERSION = '1.2.0';
 
