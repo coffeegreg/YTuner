@@ -195,7 +195,7 @@ If you credentials meet all requirements mentioned above just go to your ytuner 
 $ sudo ./ytuner
 ```
 ### Docker container
-If you are not familiar with building Docker containers you can read [this]((doc/DOCKER.md)).
+If you are not familiar with building Docker containers you can read [this](doc/DOCKER.md).
 
 ## Build
 You can use [CodeTyphon Studio](https://www.pilotlogic.com) or [Lazarus Free Pascal RAD IDE](https://www.lazarus-ide.org/) to build YTuner.  
