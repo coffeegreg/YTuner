@@ -20,7 +20,7 @@ type
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.2.1';
+  APP_VERSION = '1.2.2';
   APP_COPYRIGHT = 'Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)';
   INI_VERSION = '1.2.0';
 
@@ -142,7 +142,7 @@ var
       {$ELSE}
         {$IFDEF LINUX}
           {$IFDEF CPU64}
-            DBLibSearchPath: array[1..3] of string = ('/usr/lib64','/usr/lib/x86_64-linux-gnu','/usr/lib/aarch64-linux-gnu');
+            DBLibSearchPath: array[1..4] of string = ('/usr/lib64','/usr/lib/x86_64-linux-gnu','/usr/lib/aarch64-linux-gnu','/usr/lib');
           {$ELSE CPU32}
             DBLibSearchPath: array[1..4] of string = ('/usr/lib','/usr/lib/i386-linux-gnu','/usr/lib/arm-linux-gnueabi','/usr/lib/arm-linux-gnueabihf');
           {$ENDIF}
@@ -165,6 +165,7 @@ function URLEncode(const AStr: String): AnsiString;
 function TryToFindSQLite3Lib(ALibFile: string): string;
 function LoadSQLite3Lib: boolean;
 function CheckSQLite3LibVer: boolean;
+function GetMyAppPath: string;
 
 implementation
 uses radiobrowserdb;
@@ -454,6 +455,18 @@ begin
       LSQLite3Connection.Connected:=False;
       LSQLite3Connection.Free;
     end;
+end;
+
+function GetMyAppPath: string;
+begin
+{$IFDEF UNIX}
+// At this moment I have no better idea how to detect Alpine Linux Busybox ?
+// ! In this case, enter the YTuner directory first and then run it with ./ytuner !
+  if ParamStr(0).Contains('ld-musl-') then
+    Result:='./'
+  else
+{$ENDIF}
+    Result:=ProgramDirectory;
 end;
 
 end.

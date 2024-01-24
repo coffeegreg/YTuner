@@ -227,8 +227,7 @@ begin
     DeleteFile('heap.trc');
   SetHeapTraceOutput('heap.trc');
   {$ENDIF DEBUG}
-
-  MyAppPath:=ProgramDirectory;
+  MyAppPath:=GetMyAppPath;
   Writeln(APP_NAME+' v'+APP_VERSION+' '+APP_COPYRIGHT);
   ReadINIConfiguration;
 
