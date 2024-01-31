@@ -30,6 +30,10 @@ Extract `ytuner` and `ytuner.ini` files only :
 ```
 ladm@localubuntu20:~/YTuner-docker$ unzip -d x86_64-linux/ ytuner-1.2.2-x86_64-linux.zip ytuner ytuner.ini
 ```
+Make `ytuner` executable :
+```
+ladm@localubuntu20:~/YTuner-docker$ sudo chmod +x x86_64-linux/ytuner
+```
 Edit and change the `ytuner.ini` file as you wish, but remember to set the following options :
 ```
 CacheFolderLocation=/app/host-shared
