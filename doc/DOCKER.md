@@ -96,7 +96,7 @@ ytuner        1.2.2     0f5a6853d85c   26 seconds ago   11.4MB
 ### 4) Running YTuner in Docker container
 Now, you're ready to go:
 ```
-ladm@localubuntu20:~/YTuner-docker$ sudo docker run --rm -p 80:80/tcp -p 53:53/udp -v ~/YTuner:/app/host-shared ytuner:1.2.2
+ladm@localubuntu20:~/YTuner-docker$ sudo docker run --rm --network host -v ~/YTuner:/app/host-shared ytuner:1.2.2
 YTuner v1.2.2 Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)
 24-1-24 22:20:47 : Inf : Starting services...
 24-1-24 22:20:47 : Inf : Successfully loaded 10 my stations.
@@ -118,20 +118,20 @@ YTuner v1.2.2 Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)
 24-1-24 22:21:54 : Dbg : Cleaning tables.
 24-1-24 22:22:19 : Dbg : Rebuilding indexes.
 24-1-24 22:22:20 : Inf : Local database is ready.
-24-1-24 22:22:20 : Inf : DNS Service: listening on: 172.17.0.2:53.
-24-1-24 22:22:20 : Inf : Web Service: listening on: 172.17.0.2:80.
+24-1-24 22:22:20 : Inf : DNS Service: listening on: 192.168.1.140:53.
+24-1-24 22:22:20 : Inf : Web Service: listening on: 192.168.1.140:80.
 ```
 If you stop running YTuner container and start it again YTuner will use database or cache files already stored on host shared volume. 
 ```
-ladm@localubuntu20:~/YTuner-docker$ sudo docker run --rm -p 80:80/tcp -p 53:53/udp -v ~/YTuner:/app/host-shared ytuner:1.2.2
+ladm@localubuntu20:~/YTuner-docker$ sudo docker run --rm --network host -v ~/YTuner:/app/host-shared ytuner:1.2.2
 YTuner v1.2.2 Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)
 24-1-24 22:17:38 : Inf : Starting services...
 24-1-24 22:17:38 : Inf : Successfully loaded 10 my stations.
 24-1-24 22:17:38 : Dbg : Database library : 3.44.2.
 24-1-24 22:17:38 : Inf : Checking local database.
 24-1-24 22:17:38 : Inf : Local database is ready.
-24-1-24 22:17:38 : Inf : DNS Service: listening on: 172.17.0.2:53.
-24-1-24 22:17:38 : Inf : Web Service: listening on: 172.17.0.2:80.
+24-1-24 22:17:38 : Inf : DNS Service: listening on: 192.168.1.140:53.
+24-1-24 22:17:38 : Inf : Web Service: listening on: 192.168.1.140:80.
 ```
 That's it. Easy, right?
 ## Summary
