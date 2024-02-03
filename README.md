@@ -1,15 +1,17 @@
 ![AVR](img/avr.png)  
 
+#### *"Everything should be made as simple as possible, but not simpler"* - Albert Einstein.
+
 # YTuner
 
-YTuner is a simple project inspired by [YCast](https://github.com/milaq/YCast) but rewritten from scratch.
+YTuner is a simple project inspired by [YCast](https://github.com/milaq/YCast) but rewritten from scratch and greatly improved.
 Designed to replace vTuner internet radio service and dedicated to all users of AVRs made by Yamaha, Denon, Onkyo, Marantz, Grundig and others with built-in vTuner support.
 If you own one (or even more) of the vTuner-enabled AVRs mentioned above and want to enjoy free internet radio stations on your device as before, and be sure that your device's streaming service won't suddenly end, you should consider using YTuner.
 
 ### Why
 
 YCast is a great project, but my goal was to run a similar service on a very low-spec platform where python along with packages turned out to be too heavy and too slow.
-Now, with YTuner you can enjoy similar functionality at full speed of ultra lightweight native app on operating systems such as:
+Now, with YTuner you can enjoy improved functionality at full speed of ultra lightweight native app on operating systems such as:
 
 * Windows, Linux, macOS, BSD, Solaris, Raspberry Pi OS 
 
