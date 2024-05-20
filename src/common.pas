@@ -11,7 +11,7 @@ uses
 {$IFDEF UNIX}
   dl,
 {$ENDIF}
-  SQLDBLib, SQLDB, SQLite3Conn;
+  SQLDBLib, SQLDB, SQLite3Conn, FileUtil;
 
 type
   TLogType = (ltNone, ltInfo, ltWarning, ltError, ltDebug);
@@ -20,9 +20,9 @@ type
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.2.2';
+  APP_VERSION = '1.2.3';
   APP_COPYRIGHT = 'Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)';
-  INI_VERSION = '1.2.0';
+  INI_VERSION = '1.2.1';
 
   YTUNER_USER_AGENT = 'YTuner';
   YTUNER_HOST = 'ytunerhost';
@@ -106,6 +106,7 @@ const
 
 var
   MyIPAddress: string = DEFAULT_STRING;
+  URLHost: string = '';
   LogType: TLogType = ltError;
   MyAppPath: string;
   UseSSL: boolean = True;

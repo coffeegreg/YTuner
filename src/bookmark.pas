@@ -85,8 +85,8 @@ begin
               for i:=AFirstElement to ALastElement do
                 begin
                   AppendChild(LXMLBookmarkPart.ImportNode(LXMLBookmark.FirstChild.ChildNodes[i+1],true));
-                  LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue,YTUNER_HOST,MyIPAddress,[rfIgnoreCase]);
-                  LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,YTUNER_HOST,MyIPAddress,[rfIgnoreCase]);
+                  LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
+                  LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
                 end;
             end;
           WriteXML(LXMLBookmarkPart,AXMLStream);
@@ -139,8 +139,8 @@ begin
             with LXMLBookmarkPart.DocumentElement do
               begin
                 AppendChild(LXMLBookmarkPart.ImportNode(LXMLBookmark.FirstChild.ChildNodes[LStationIdx],true));
-                LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue,YTUNER_HOST,MyIPAddress,[rfIgnoreCase]);
-                LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,YTUNER_HOST,MyIPAddress,[rfIgnoreCase]);
+                LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
+                LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
                 WriteXML(LXMLBookmarkPart,AXMLStream);
               end;
         except
@@ -210,8 +210,8 @@ begin
                 LNode.FirstChild.FirstChild.NodeValue:=IntToStr(LItemCount+1);
                 LNode:=LXMLBookmark.ImportNode(ANode,true);
                 LNode.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LNode.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,PATH_FAVACTION+'='+PATH_FAVACTION_ADD,PATH_FAVACTION+'='+PATH_FAVACTION_DEL,[rfIgnoreCase]);
-                LNode.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LNode.FindNode(VT_XML_LOGO).FirstChild.NodeValue,MyIPAddress,YTUNER_HOST,[rfIgnoreCase]);
-                LNode.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LNode.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,MyIPAddress,YTUNER_HOST,[rfIgnoreCase]);
+                LNode.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LNode.FindNode(VT_XML_LOGO).FirstChild.NodeValue,URLHost,YTUNER_HOST,[rfIgnoreCase]);
+                LNode.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LNode.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,URLHost,YTUNER_HOST,[rfIgnoreCase]);
                 LXMLBookmark.DocumentElement.AppendChild(LNode);
                 WriteXMLFile(LXMLBookmark,AMAC);
               end;

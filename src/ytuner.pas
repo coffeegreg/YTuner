@@ -114,6 +114,9 @@ begin
       if ReadString(INI_CONFIGURATION,'INIVersion','')<>INI_VERSION then
         Logging(ltWarning, 'You are running out of INI file or your ytuner.ini file is outdated! Some features may not work properly! Check https://github.com/coffeegreg/YTuner/tree/master/cfg for the correct INI file for your version of YTuner');
       MyIPAddress:=GetLocalIP(ReadString(INI_CONFIGURATION,'IPAddress',MyIPAddress));
+      URLHost:=ReadString(INI_CONFIGURATION,'ActAsHost',MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress);
+      if URLHost.Trim.IsEmpty then
+        URLHost:=MyIPAddress;
       UseSSL:=ReadBool(INI_CONFIGURATION,'UseSSL',True);
       IconSize:=ReadInteger(INI_CONFIGURATION,'IconSize',IconSize);
       IconCache:=ReadBool(INI_CONFIGURATION,'IconCache',True);
@@ -336,8 +339,11 @@ begin
   Application.Threaded:=True;
   Application.Initialize;
   Logging(ltInfo, WEB_SERVICE+': listening on: '+WebServerIPAddress+':'+WebServerPort.ToString);
-  if MyIPAddress <> WebServerIPAddress then
-    Logging(ltInfo, 'AVRs HTTP requests IP target: '+MyIPAddress);
+  if (URLHost <> '') and  (URLHost <> WebServerIPAddress) then
+    Logging(ltInfo, 'AVRs HTTP requests host target: '+URLHost)
+  else
+    if MyIPAddress <> WebServerIPAddress then
+      Logging(ltInfo, 'AVRs HTTP requests IP target: '+MyIPAddress);
   Application.Run;
 end.
 
