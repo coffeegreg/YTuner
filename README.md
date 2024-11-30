@@ -34,7 +34,8 @@ YTuner supports :
 * Radio-browser extensive caching with many options and auto refresh
   * UUIDs, data structures and stations cache (based on files or RAM storage).
   * Local DB based full cache of Radio-browser resources.
-* Radio browser advanced filtering and sorting (single config for many AVRs or dedicated configs for each AVR (if you own more then one))
+* Radio-browser advanced filtering and sorting (single config for many AVRs or dedicated configs for each AVR (if you own more then one))
+* Radio-browser menu/submenu translator (for non-English users)
 
 YTuner also has build in :
 * Web service to support AVR requests.
@@ -57,6 +58,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Yamaha RX-V3900 (Tested by [BeryBurnout](https://github.com/BeryBurnout). Thank you.)
   * Yamaha RX-A820 (Tested by [Prideland](https://github.com/Prideland). Thank you.)
   * Yamaha DSP-Z7 (Tested by Beatrice / [TheBossME](https://github.com/TheBossME). Thank you.)
+  * Yamaha NP-S2000  (Tested by Ice64zzz / [Ice64zzz](https://github.com/Ice64zzz). Thank you.)
 - Marantz
   * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
 - Denon
