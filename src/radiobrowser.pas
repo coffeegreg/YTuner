@@ -376,7 +376,6 @@ begin
     Result:=GetStationsByCategory(ARBStations,ARBAllCategoryType,AName,GetAVRConfigIdx(AReq),LStart,LHowMany);
 end;
 
-
 function GetStationsByCategory(var ARBStations: TRBStations; ARBAllCategoryType: TRBAllCategoryTypes; AName: string; AAVRConfigIdx, AStart, AHowMany: integer): integer;
 var
   LURL: string;

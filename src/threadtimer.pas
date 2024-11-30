@@ -14,10 +14,13 @@ type
 
   TThreadTimer = class(TThread)
   private
+    FName: string;
     FInterval: Cardinal;
     FOnTimer: TOnTimer;
     FEvent: TEventObject;
     FEnabled: Boolean;
+    FProcessing: Boolean;
+    FNeeded: Boolean;
     procedure DoOnTimer;
   protected
     procedure Execute; override;
@@ -25,6 +28,8 @@ type
     property OnTimer: TOnTimer read FOnTimer write FOnTimer;
     property Interval: Cardinal read FInterval write FInterval;
     property Enabled: Boolean read FEnabled write FEnabled;
+    property Processing: Boolean read FProcessing write FProcessing;
+    property Needed: Boolean read FNeeded write FNeeded;
     procedure StopTimer;
     procedure StartTimer;
     procedure TerminateTimer;
@@ -34,19 +39,24 @@ type
 const
   RB_THREAD = 'RBThread';
   MS_THREAD = 'MSThread';
+  GT_THREAD = 'GTThread';
 
 var
   RBThread, MSThread : TThreadTimer;
+  GTThread : TThreadTimer = nil;
 
 implementation
 
 constructor TThreadTimer.Create(AName: string);
 begin
   inherited Create(True);  // Suspended = True
+  FName:=AName;
   FEvent:=TEventObject.Create(nil,True,False,AName);
   FInterval:=1000;
   FreeOnTerminate:=True;
   FEnabled:=False;
+  FProcessing:=False;
+  FNeeded:=False;
 end;
 
 procedure TThreadTimer.DoOnTimer;
@@ -59,18 +69,25 @@ procedure TThreadTimer.Execute;
 begin
   while not Terminated do
     begin
-      FEvent.WaitFor(FInterval);
+      if Assigned(FEvent) then
+        FEvent.WaitFor(FInterval);
       if Terminated then
-        Break;
-      if FEnabled then
+        begin
+          if Assigned(FEvent) then
+            FEvent.Free;
+          Break;
+        end;
+      if FEnabled and (not FProcessing) then
         DoOnTimer;
-      FEvent.ResetEvent;
+      if Assigned(FEvent) then
+        FEvent.ResetEvent;
     end;
 end;
 
 procedure TThreadTimer.StopTimer;
 begin
   FEnabled:=False;
+//  Self.Suspended:=True;       // Not suitable for *nix.
 end;
 
 procedure TThreadTimer.StartTimer;
@@ -81,12 +98,14 @@ end;
 
 procedure TThreadTimer.TerminateTimer;
 begin
-  StopTimer;
+  FEnabled:=False;
   if Assigned(FEvent) then
     begin
       FEvent.SetEvent;
       FEvent.Free;
+      FEvent:=nil;
     end;
+  OnTerminate:=nil;
   Terminate;
 //  WaitFor;
 end;

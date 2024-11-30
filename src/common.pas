@@ -11,16 +11,25 @@ uses
 {$IFDEF UNIX}
   dl,
 {$ENDIF}
-  SQLDBLib, SQLDB, SQLite3Conn, FileUtil;
+  SQLDBLib, SQLDB, SQLite3Conn, FileUtil,
+  fphttpclient;
 
 type
   TLogType = (ltNone, ltInfo, ltWarning, ltError, ltDebug);
   TResponseContentType = (ctNone, ctXML, ctPNG, ctJPG, ctGIF, ctTIFF, ctJSON);
   TCacheType = (catNone, catFile, catMemStr, catDB, catMemDB, catPermMemDB);
 
+  TLocalHttpClient = class(TFPHTTPClient)
+  private
+    FMaxDataToReceive: integer;
+    procedure HandleDataReceived(Sender : TObject; Const ContentLength, CurrentPos : Int64);
+  public
+    constructor Create(AMaxDataToReceive: integer = 0); overload;
+  end;
+
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.2.3';
+  APP_VERSION = '1.2.4';
   APP_COPYRIGHT = 'Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)';
   INI_VERSION = '1.2.1';
 
@@ -32,6 +41,7 @@ const
   MSG_FILE_LOAD_ERROR = ' file load error';
   MSG_FILE_SAVE_ERROR = ' file save error';
   MSG_FILE_DELETE_ERROR = ' file delete error';
+  MSG_FILE_CREATE_ERROR = ' file create error';
   MSG_LOADING = 'loading';
   MSG_REMOVING = 'removing';
   MSG_GETTING = 'getting';
@@ -58,6 +68,8 @@ const
   MSG_FOUND = 'found';
   MSG_NOT_FOUND = 'not found';
   MSG_STATIONS = 'stations';
+  MSG_GOOGLE_TRANSLATE = 'Google Translate:';
+  MSG_TRANSLATOR = 'Translator';
 
   MSG_RBUUID_CACHE_FILE = 'RB UUIDs cache file';
 
@@ -73,11 +85,27 @@ const
   HTTP_HEADER_USER_AGENT = 'User-Agent';
   HTTP_HEADER_LOCATION = 'Location';
   HTTP_HEADER_SERVER = 'Server';
+  HTTP_HEADER_ACCEPT_ENCODING = 'Accept-Encoding';
+  HTTP_HEADER_ACCEPT_LANGUAGE = 'Accept-Language';
+  HTTP_HEADER_CACHE_CONTROL = 'Cache-Control';
+  HTTP_HEADER_CONNECTION = 'Connection';
+  HTTP_HEADER_PRAGMA = 'Pragma';
+  HTTP_HEADER_UPGRADE_INSECURE_REQUESTS = 'Upgrade-Insecure-Requests';
+
+  WEBBROWSER_HTTP_HEADER_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0';
+  WEBBROWSER_HTTP_HEADER_ACCEPT ='text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9';
+  WEBBROWSER_HTTP_HEADER_ACCEPT_ENCODING = 'gzip, deflate';
+  WEBBROWSER_HTTP_HEADER_ACCEPT_LANGUAGE = 'en-US,en;q=0.9';
+  WEBBROWSER_HTTP_HEADER_CACHE_CONTROL = 'no-cache';
+  WEBBROWSER_HTTP_HEADER_CONNECTION = 'keep-alive';
+  WEBBROWSER_HTTP_HEADER_PRAGMA = 'no-cache';
+
+
   HTTP_RESPONSE_CONTENT_TYPE : array[TResponseContentType] of string = ('text/html; charset=utf-8','application/xml','image/png','image/jpeg','image/gif','image/tiff','application/json');
 
   MY_STATIONS_PREFIX = 'MS';
   RADIOBROWSER_PREFIX = 'RB';
-  PATH_MY_STATIONS = 'my_stations';
+  PATH_MY_STATIONS = 'mystations';
 
   PATH_PARAM_ID = 'id';
   PATH_PARAM_MAC = 'mac';
@@ -170,6 +198,20 @@ function GetMyAppPath: string;
 
 implementation
 uses radiobrowserdb;
+
+constructor TLocalHttpClient.Create(AMaxDataToReceive: integer = 0);
+begin
+  inherited Create(nil);
+  FMaxDataToReceive:=AMaxDataToReceive;
+  if FMaxDataToReceive>0 then
+    OnDataReceived := @HandleDataReceived;
+end;
+
+procedure TLocalHttpClient.HandleDataReceived(Sender : TObject; Const ContentLength, CurrentPos : Int64);
+begin
+  if (FMaxDataToReceive>0) and (CurrentPos>FMaxDataToReceive) then
+    Self.Terminate;
+end;
 
 procedure Logging(ALogType: TLogType; ALogMessage: string);
 begin

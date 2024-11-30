@@ -65,6 +65,7 @@ const
   VT_XML_DIR = 'Dir';
   VT_XML_STATION = 'Station';
   VT_XML_DISPLAY = 'Display';
+  VT_XML_MESSAGE = 'Message';
   VT_XML_TITLE = 'Title';
   VT_XML_URLDIR = 'UrlDir';
   VT_XML_URLDIRBACKUP = 'UrlDirBackUp';

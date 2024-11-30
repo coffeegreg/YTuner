@@ -23,7 +23,7 @@ uses
   openssl, opensslsockets,
   {$ENDIF}
   regexpr, my_stations, vtuner, httpserver, radiobrowser, common, bookmark,
-  dnsserver, threadtimer, avr, maintenance, radiobrowserdb;
+  dnsserver, threadtimer, avr, maintenance, radiobrowserdb, translator;
 
 // {$DEFINE FREE_ON_FINAL}
 // Enable the FREE_ON_FINAL directive in IdCompilerDefines.inc of Indy library to remove standard (ie, intentional) Indy memory leaks.

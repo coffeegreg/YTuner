@@ -39,7 +39,7 @@ uses
   fpreadtiff,
 {$ENDIF}
   fphttpclient, httpdefs, httproute, DOM,
-  common, vtuner, my_stations, radiobrowser, bookmark, avr;
+  common, vtuner, my_stations, radiobrowser, bookmark, avr, translator;
 
 const
   WEB_SERVICE = 'Web Service';
@@ -55,6 +55,9 @@ const
   PATH_STATION = 'station';
   PATH_SEARCH = 'search';
   PATH_ICON = 'icon';
+  PATH_ABOUT = 'about';
+  PATH_EMPTY = 'empty';
+  PATH_VTUNER_ASP = 'func/dynamOD.asp';
 
   PATH_RADIOBROWSER_GENRE = 'genre';
   PATH_RADIOBROWSER_COUNTRY = 'country';
@@ -69,6 +72,7 @@ const
   MSG_NO_STATIONS_FOUND = 'No station(s) found';
   MSG_FOR_THIS_CATEGORY = ' for this category';
   MSG_UNKNOWN_ROUTE = 'Unknown route';
+  MSG_EMPTY_FOLDER = 'This folder is intentionally empty...';
 
 var
   WebServerIPAddress: string;
@@ -93,6 +97,9 @@ procedure GetRadioBrowserCategoryStations(AReq: TRequest; ARes: TResponse);
 procedure GetBookmarkStations(AReq: TRequest; ARes: TResponse);
 procedure PlayStation(AReq: TRequest; ARes: TResponse);
 procedure GetRadioBrowserSearchedStations(AReq: TRequest; ARes: TResponse);
+procedure GetAbout(AReq: TRequest; ARes: TResponse);
+procedure GetEmpty(AReq: TRequest; ARes: TResponse);
+procedure VTunerRedirect(AReq: TRequest; ARes: TResponse);
 
 // Service routines
 function GetRange(var AStart, AHowMany: integer; AQueryFields: TStrings): boolean;
@@ -106,9 +113,9 @@ procedure ServerResponse(AResponseCode: integer; AResponseContentType: TResponse
 procedure SendPageResponse(AResponseCode: integer; AResponseContentType: TResponseContentType; ARes: TResponse; AMyPage: TVTunerPage);
 
 // vTuner structures routines
-function SetVTunerStation(LStation: TMSStation; AReq: TRequest): TVTunerStation;
-function SetVTunerStation(LRBStation: TRBStation; AReq: TRequest): TVTunerStation;
-function SetVTunerDirectory(ATitle, ADestination: string; AItemCount: integer): TVTunerDirectory;
+function SetVTunerStation(AStation: TMSStation; AReq: TRequest): TVTunerStation;
+function SetVTunerStation(ARBStation: TRBStation; AReq: TRequest; ATranslatorIdx: integer): TVTunerStation;
+function SetVTunerDirectory(ATitle, ADestination: string; AItemCount: integer; ATranslatorIdx: integer): TVTunerDirectory;
 function SetVTunerDisplay(AMessage: string): TVTunerDisplay;
 
 // Display AVR messsages
@@ -129,6 +136,11 @@ begin
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_RADIOBROWSER+'/:'+PATH_CATEGORY_TYPE, @GetRadioBrowserCategoryType, false);
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_RADIOBROWSER+'/:'+PATH_CATEGORY_TYPE+'/:'+PATH_CATEGORY, @GetRadioBrowserCategoryStations, false);
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_BOOKMARK, @GetBookmarkStations, false);
+  HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_ABOUT, @GetAbout, false);
+  HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_EMPTY, @GetEmpty, false);
+
+// This endpoint is for redirect for vTuner radio station link
+  HTTPRouter.RegisterRoute('/'+PATH_SETUPAPP+'/*/'+PATH_VTUNER_ASP, @VTunerRedirect, false);
 
 ///////////////////////////////////////////////
 // Group of routes NOT tested with real AVR. //
@@ -173,7 +185,43 @@ end;
 procedure SetupAppLoginXMLPage(AReq: TRequest; ARes: TResponse);
 var
   LMyPage: TVTunerPage;
-  i: integer=0;
+  LIdx: integer=0;
+
+  procedure LSetMainMenuItems(AAAVRConfigIdx: integer);
+  var
+    LLIdx: integer = 0;
+  begin
+    while LLIdx<Length(AVRConfigArray[AAAVRConfigIdx].MainMenuItems) do
+      begin
+        case AVRConfigArray[AAAVRConfigIdx].MainMenuItems[LLIdx].MIdentifier of
+          AVR_MAINMENU_IDENTIFIER_MYSTATIONS:
+            if MyStationsEnabled then
+              begin
+                LMyPage.Add(SetVTunerDirectory(AVRConfigArray[AAAVRConfigIdx].MainMenuItems[LLIdx].MLabel,PATH_ROOT+'/'+PATH_MY_STATIONS,Length(MyStations),-1));
+                LIdx:=LIdx+1;
+              end;
+          AVR_MAINMENU_IDENTIFIER_RADIOBROWSER:
+            if RadiobrowserEnabled then
+              begin
+                LMyPage.Add(SetVTunerDirectory(AVRConfigArray[AAAVRConfigIdx].MainMenuItems[LLIdx].MLabel,PATH_ROOT+'/'+PATH_RADIOBROWSER,4,-1));
+                LIdx:=LIdx+1;
+              end;
+          AVR_MAINMENU_IDENTIFIER_BOOKMARKS:
+            if BookmarkEnabled then
+              begin
+                LMyPage.Add(SetVTunerDirectory(AVRConfigArray[AAAVRConfigIdx].MainMenuItems[LLIdx].MLabel,PATH_ROOT+'/'+PATH_BOOKMARK,GetBookmarkItemsCount(AReq.QueryFields.Values[PATH_PARAM_MAC]),-1));
+                LIdx:=LIdx+1;
+              end;
+          AVR_MAINMENU_IDENTIFIER_ABOUT:
+            begin
+              LMyPage.Add(SetVTunerDirectory(AVRConfigArray[AAAVRConfigIdx].MainMenuItems[LLIdx].MLabel,PATH_ROOT+'/'+PATH_ABOUT,2,-1));
+              LIdx:=LIdx+1;
+            end;
+        end;
+        LLIdx:=LLIdx+1;
+      end;
+  end;
+
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
   if AReq.QueryFields.Values[PATH_PARAM_TOKEN]='0' then
@@ -182,22 +230,8 @@ begin
     begin
       LMyPage:=TVTunerPage.Create;
       try
-        if MyStationsEnabled then
-          begin
-            LMyPage.Add(SetVTunerDirectory('My stations',PATH_ROOT+'/'+PATH_MY_STATIONS,Length(MyStations)));
-            i:=i+1;
-          end;
-        if RadiobrowserEnabled then
-          begin
-            LMyPage.Add(SetVTunerDirectory('Radio browser',PATH_ROOT+'/'+PATH_RADIOBROWSER,4));
-            i:=i+1;
-          end;
-        if BookmarkEnabled then
-          begin
-            LMyPage.Add(SetVTunerDirectory('Bookmark',PATH_ROOT+'/'+PATH_BOOKMARK,GetBookmarkItemsCount(AReq.QueryFields.Values[PATH_PARAM_MAC])));
-            i:=i+1;
-          end;
-        LMyPage.TotalItemsCount:=i;
+        LSetMainMenuItems(GetAVRConfigIdx(AReq));
+        LMyPage.TotalItemsCount:=LIdx;
         SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
       finally
         LMyPage.Free;
@@ -293,7 +327,7 @@ begin
       begin
         for i:=LFirstElement to LLastElement do
           with MyStations[i] do
-            LMyPage.Add(SetVTunerDirectory(MSCategory,PATH_ROOT+'/'+PATH_MY_STATIONS+'/'+URLEncode(MSCategory),Length(MSStations)));
+            LMyPage.Add(SetVTunerDirectory(MSCategory,PATH_ROOT+'/'+PATH_MY_STATIONS+'/'+URLEncode(MSCategory),Length(MSStations),-1));
         SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
       end
     else
@@ -520,16 +554,18 @@ procedure GetRadioBrowserRootDirectory(AReq: TRequest; ARes: TResponse);
 var
   LRootCategoryTypesCount: TRBRootCategoryTypesCount;
   LMyPage: TVTunerPage;
+  LAVRConfigIdx: integer;
 begin
   Logging(ltDebug, AReq.Method+' '+AReq.URI);
-  GetRootItems(LRootCategoryTypesCount,GetAVRConfigIdx(AReq));
+  LAVRConfigIdx:=GetAVRConfigIdx(AReq);
+  GetRootItems(LRootCategoryTypesCount,LAVRConfigIdx);
   LMyPage:=TVTunerPage.Create;
   try
     LMyPage.TotalItemsCount:=4;
-    LMyPage.Add(SetVTunerDirectory('Genres',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_GENRE,LRootCategoryTypesCount[rbctGenre]));
-    LMyPage.Add(SetVTunerDirectory('Countries',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_COUNTRY,LRootCategoryTypesCount[rbctCountry]));
-    LMyPage.Add(SetVTunerDirectory('Languages',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_LANGUAGE,LRootCategoryTypesCount[rbctLanguage]));
-    LMyPage.Add(SetVTunerDirectory('Most popular',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_POPULAR,LRootCategoryTypesCount[rbctPopular]));
+    LMyPage.Add(SetVTunerDirectory('Genres',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_GENRE,LRootCategoryTypesCount[rbctGenre],LAVRConfigIdx));
+    LMyPage.Add(SetVTunerDirectory('Countries',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_COUNTRY,LRootCategoryTypesCount[rbctCountry],LAVRConfigIdx));
+    LMyPage.Add(SetVTunerDirectory('Languages',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_LANGUAGE,LRootCategoryTypesCount[rbctLanguage],LAVRConfigIdx));
+    LMyPage.Add(SetVTunerDirectory('Most popular',PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_POPULAR,LRootCategoryTypesCount[rbctPopular],LAVRConfigIdx));
     SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
   finally
     LMyPage.Free;
@@ -557,7 +593,7 @@ begin
                     LMyPage.TotalItemsCount:=LTotalCount;
                     for i:=0 to LRBCategories.Count-1 do
                       with TRBCategory(LRBCategories.Objects[i]) do
-                        LMyPage.Add(SetVTunerDirectory(RBCName,PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_CATEGORIES[LCategoryIdx]+'/'+URLEncode(RBCName),RBCMaxCount));
+                        LMyPage.Add(SetVTunerDirectory(RBCName,PATH_ROOT+'/'+PATH_RADIOBROWSER+'/'+PATH_RADIOBROWSER_CATEGORIES[LCategoryIdx]+'/'+URLEncode(RBCName),RBCMaxCount,GetAVRConfigIdx(AReq)));
                     SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
                   finally
                     LMyPage.Free;
@@ -610,7 +646,7 @@ begin
   LStream:=TMemoryStream.Create;
   try
     GetPageRange(FirstElement,LastElement,GetBookmarkItemsCount(AReq.QueryFields.Values[PATH_PARAM_MAC]),AReq.QueryFields);
-    if GetBookmark(AReq.QueryFields.Values[PATH_PARAM_MAC],FirstElement,LastElement,LStream) then
+    if GetBookmark(AReq,FirstElement,LastElement,LStream) then
       LCode:=HTTP_CODE_OK
     else
       LCode:=HTTP_CODE_NOT_FOUND;
@@ -684,6 +720,63 @@ begin
       Logging(ltError, 'Search error: '+E.Message);
   end;
 end;
+
+procedure GetAbout(AReq: TRequest; ARes: TResponse);
+var
+  LMyPage: TVTunerPage;
+begin
+  Logging(ltDebug, AReq.Method+' '+AReq.URI);
+  LMyPage:=TVTunerPage.Create;
+  try
+    LMyPage.TotalItemsCount:=2;
+    LMyPage.Add(SetVTunerDirectory('Welcome to '+APP_NAME+' v'+APP_VERSION,PATH_ROOT+'/'+PATH_EMPTY,1,-1));
+    LMyPage.Add(SetVTunerDirectory(APP_COPYRIGHT,PATH_ROOT+'/'+PATH_EMPTY,1,-1));
+    SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
+  finally
+    LMyPage.Free;
+  end;
+end;
+
+procedure GetEmpty(AReq: TRequest; ARes: TResponse);
+begin
+  Logging(ltDebug, AReq.Method+' '+AReq.URI);
+  DisplayMessage(MSG_EMPTY_FOLDER,ARes);
+end;
+
+procedure VTunerRedirect(AReq: TRequest; ARes: TResponse);
+var
+  LHTTP_Code: integer = HTTP_CODE_NOT_FOUND;
+begin
+  Logging(ltDebug, AReq.Method+' '+AReq.URI);
+  with TLocalHttpClient.Create(1024) do
+    try
+      AllowRedirect:=False;
+      KeepConnection:=True;
+      AddHeader(HTTP_HEADER_ACCEPT,WEBBROWSER_HTTP_HEADER_ACCEPT);
+      AddHeader(HTTP_HEADER_ACCEPT_ENCODING, WEBBROWSER_HTTP_HEADER_ACCEPT_ENCODING);
+      AddHeader(HTTP_HEADER_ACCEPT_LANGUAGE, WEBBROWSER_HTTP_HEADER_ACCEPT_LANGUAGE);
+      AddHeader(HTTP_HEADER_CACHE_CONTROL, WEBBROWSER_HTTP_HEADER_CACHE_CONTROL);
+      AddHeader(HTTP_HEADER_CONNECTION, WEBBROWSER_HTTP_HEADER_CONNECTION);
+      AddHeader(HTTP_HEADER_PRAGMA, WEBBROWSER_HTTP_HEADER_PRAGMA);
+      AddHeader(HTTP_HEADER_UPGRADE_INSECURE_REQUESTS, '1');
+      AddHeader(HTTP_HEADER_USER_AGENT,WEBBROWSER_HTTP_HEADER_USER_AGENT);
+      try
+        Get('http://'+AReq.Host+AReq.URL);
+      except end;
+      case ResponseStatusCode of
+        301,302,303,307,308 : if (ResponseHeaders.IndexOfName('Location')>=0) then
+                                begin
+                                  LHTTP_Code:=302;
+                                  ARes.SetCustomHeader(HTTP_HEADER_LOCATION,Trim(ResponseHeaders.Values['Location']));
+                                  Logging(ltDebug, 'vTuner radio station link - redirect to:'+ResponseHeaders.Values['Location']);
+                                end;
+      end;
+    finally
+      Free;
+    end;
+  ServerResponse(LHTTP_Code,ctNone,ARes,'');
+end;
+
 // END - Registered routes routines
 
 // BEGIN - Service routines
@@ -741,7 +834,7 @@ begin
     if ALastElement<0 then
       begin
         Logging(ltDebug, 'Last element of page with index: "'+IntToStr(ALastElement)+'"');
-        ALastElement:=0;
+        ALastElement:=AArrayLen-1;  // Changed from 0 value due to this issue : https://github.com/coffeegreg/YTuner/issues/28
       end;
 end;
 
@@ -749,6 +842,7 @@ function GetStationInfo(AReq: TRequest; AMyPage: TVTunerPage): string;
 var
   LMSStation: TMSStation;
   LRBStation: TRBStation;
+  LAVRConfigIdx: integer;
 begin
   Result:='';
   case AReq.QueryFields.Values[PATH_PARAM_ID].Substring(0,2) of
@@ -766,11 +860,12 @@ begin
       begin
         LRBStation:=TRBStation.Create;
         try
-          GetRBStationByID(LRBStation,AReq.QueryFields.Values[PATH_PARAM_ID].Substring(3,12),GetAVRConfigIdx(AReq));
+          LAVRConfigIdx:=GetAVRConfigIdx(AReq);
+          GetRBStationByID(LRBStation,AReq.QueryFields.Values[PATH_PARAM_ID].Substring(3,12),LAVRConfigIdx);
           if LRBStation.RBSID<>'' then
             begin
               AMyPage.TotalItemsCount:=1;
-              AMyPage.Add(SetVTunerStation(LRBStation,AReq));
+              AMyPage.Add(SetVTunerStation(LRBStation,AReq,LAVRConfigIdx));
               Result:=LRBStation.RBSID;
             end;
         finally
@@ -783,15 +878,16 @@ end;
 procedure GetRadioBrowserStations(ARBStations: TRBStations; ATotalCount: integer; AReq: TRequest; ARes: TResponse);
 var
   LMyPage: TVTunerPage;
-  i: integer;
+  LAVRConfigIdx, i: integer;
 begin
   if ATotalCount>0 then
     begin
+      LAVRConfigIdx:=GetAVRConfigIdx(AReq);
       LMyPage:=TVTunerPage.Create;
       try
         LMyPage.TotalItemsCount:=ATotalCount;
         for i:=0 to ARBStations.Count-1 do
-          LMyPage.Add(SetVTunerStation(TRBStation(ARBStations.Objects[i]),AReq));
+          LMyPage.Add(SetVTunerStation(TRBStation(ARBStations.Objects[i]),AReq,LAVRConfigIdx));
         SendPageResponse(HTTP_CODE_OK,ctXML,ARes,LMyPage);
       finally
         LMyPage.Free;
@@ -847,10 +943,10 @@ end;
 // END - Server response routines
 
 // BEGIN - vTuner structures routines
-function SetVTunerStation(LStation: TMSStation; AReq: TRequest): TVTunerStation;
+function SetVTunerStation(AStation: TMSStation; AReq: TRequest): TVTunerStation;
 begin
   Result:=TVTunerStation.Create;
-  with Result, LStation do
+  with Result, AStation do
     begin
       UID:=Station.MSID;
       Name:=Station.MSName;
@@ -862,20 +958,27 @@ begin
     end;
 end;
 
-function SetVTunerStation(LRBStation: TRBStation; AReq: TRequest): TVTunerStation;
+function SetVTunerStation(ARBStation: TRBStation; AReq: TRequest; ATranslatorIdx: integer): TVTunerStation;
 begin
   Result:=TVTunerStation.Create;
-  with Result, LRBStation do
+  with Result, ARBStation, AVRConfigArray[ATranslatorIdx].Translator do
     begin
       UID:=RADIOBROWSER_PREFIX+'_'+RBSID.Replace('-','').Substring(0,12).ToUpper;
       Name:=RBSName;
-      Description:=RBSName+' : '+RBSHomePageURL;
+      Location:=RBSCountry;
+      if Enabled then
+        Location:=Translate(Location, ATranslatorIdx);
+      if ReplaceUTF8Latin1Supplement or ReplaceUTF8Latin1ExtendedA or ReplaceUTF8Latin1ExtendedB then
+        begin
+          Name:=ReplaceDiacritics(Name, ATranslatorIdx);
+          Location:=ReplaceDiacritics(Location, ATranslatorIdx);
+        end;
+      Description:=Name+' : '+RBSHomePageURL;
       URL:=StripHttps(RBSURL,AReq);
       if RBSTags='' then
         Genre:=AReq.RouteParams[PATH_CATEGORY]
       else
         Genre:=RBSTags;
-      Location:=RBSCountry;
       Mime:=RBSCodec.ToUpper;
       Bitrate:=RBSBitrate;
       Icon:=PATH_HTTP+URLHost+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+UID;
@@ -883,12 +986,20 @@ begin
     end;
 end;
 
-function SetVTunerDirectory(ATitle, ADestination: string; AItemCount: integer): TVTunerDirectory;
+function SetVTunerDirectory(ATitle, ADestination: string; AItemCount: integer; ATranslatorIdx: integer): TVTunerDirectory;
 begin
   Result:=TVTunerDirectory.Create;
   with Result do
     begin
       Title:=ATitle;
+      if ATranslatorIdx>=0 then
+        with AVRConfigArray[ATranslatorIdx].Translator do
+          begin
+            if Enabled then
+              Title:=Translate(Title, ATranslatorIdx);
+            if ReplaceUTF8Latin1Supplement or ReplaceUTF8Latin1ExtendedA or ReplaceUTF8Latin1ExtendedB then
+              Title:=ReplaceDiacritics(Title, ATranslatorIdx);
+          end;
       Destination:=PATH_HTTP+URLHost+'/'+ADestination;
       ItemCount:=AItemCount;
     end;

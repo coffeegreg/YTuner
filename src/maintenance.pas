@@ -8,7 +8,7 @@ interface
 
 uses
   Classes, SysUtils,
-  fphttpapp, fphttpclient, fphttpserver;
+  fphttpapp, fphttpclient, fphttpserver, avr;
 
 type
   TMaintenaceHTTPServer = Class
@@ -122,9 +122,26 @@ begin
       end;
 end;
 
+procedure GTThreadTimerDown;
+begin
+  if Assigned(GTThread) then
+    with GTThread do
+      begin
+        if Suspended then
+          Start;
+        TerminateTimer;
+      end;
+end;
+
 procedure YTunerServiceDown(Sender: TObject);
+var
+  i: integer;
 begin
   Logging(ltInfo,string.Join(': ',[APP_NAME,MSG_SHUTTING_DOWN+'. Please wait..']));
+  Logging(ltInfo,string.Join(': ',[APP_NAME,'Freeing up resources..']));
+  for i:=0 to Length(AVRConfigArray)-1 do
+     if AVRConfigArray[i].Translator.TranslatorItems <> nil then
+       AVRConfigArray[i].Translator.TranslatorItems.Free;
   if RadioBrowserEnabled and (RBCacheType in [catDB, catMemDB, catPermMemDB]) and (Assigned(DBRBMainConnection))then
     begin
       Logging(ltInfo,string.Join(': ',[MSG_RBDB_CLOSING,MSG_RBDB_DB,MSG_RBDB_CONNECTION]));
@@ -147,6 +164,14 @@ begin
         MSThreadTimerDown;
       except end;
       Logging(ltInfo,string.Join(': ',[MS_THREAD,MSG_DONE]));
+    end;
+  if Assigned(GTThread) then
+    begin
+      Logging(ltInfo,string.Join(': ',[GT_THREAD,MSG_SHUTTING_DOWN]));
+      try
+        GTThreadTimerDown;
+      except end;
+      Logging(ltInfo,string.Join(': ',[GT_THREAD,MSG_DONE]));
     end;
   if DNSServerEnabled then
     begin
@@ -171,8 +196,14 @@ begin
   except end;
   Logging(ltInfo,string.Join(': ',[WEB_SERVICE,MSG_DONE]));
   try
-    TFPHttpClient.SimpleGet('http://'+WebServerIPAddress+':'+WebServerPort.ToString);
-  except end;
+    with TFPHttpClient.Create(nil) do
+      try
+        SimpleGet('http://'+WebServerIPAddress+':'+WebServerPort.ToString);
+      finally
+        Free;
+      end;
+  except
+  end;
 end;
 
 end.

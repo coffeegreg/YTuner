@@ -7,9 +7,9 @@ unit bookmark;
 interface
 
 uses
-  Classes, SysUtils,
-  DOM, XMLRead, XMLWrite,
-  vtuner, common;
+  Classes, SysUtils, StrUtils,
+  DOM, XMLRead, XMLWrite, httpdefs,
+  vtuner, common, avr, translator;
 
 const
   PATH_BOOKMARK = 'bookmark';
@@ -17,11 +17,9 @@ const
   PATH_FAVACTION_ADD = 'add';
   PATH_FAVACTION_DEL = 'del';
 
-
-
 function GetBookmarkFileName(AMAC: string): string;
 function GetBookmarkItemsCount(AMAC: string): integer;
-function GetBookmark(AMAC: string; AFirstElement, ALastElement: integer; AXMLStream: TStream): boolean;
+function GetBookmark(AReq: TRequest; AFirstElement, ALastElement: integer; AXMLStream: TStream): boolean;
 function GetBookmarkStationInfo(AMAC, ASID: string; AXMLStream: TStream): boolean;
 procedure SetBookmark(AMAC, AAction: string; ANode: TDOMNode);
 
@@ -65,19 +63,21 @@ begin
   end;
 end;
 
-function GetBookmark(AMAC: string; AFirstElement, ALastElement: integer; AXMLStream: TStream): boolean;
+function GetBookmark(AReq: TRequest; AFirstElement, ALastElement: integer; AXMLStream: TStream): boolean;
 var
   LXMLBookmark: TXMLDocument = nil;
   LXMLBookmarkPart: TXMLDocument = nil;
-  i: integer;
+  LAVRConfigIdx, i: integer;
+  LBookmarkFileName: string;
 begin
-  AMAC:=GetBookmarkFileName(AMAC);
+  LBookmarkFileName:=GetBookmarkFileName(AReq.QueryFields.Values[PATH_PARAM_MAC]);
+  LAVRConfigIdx:=GetAVRConfigIdx(AReq);
   LXMLBookmarkPart:=TXMLDocument.Create;
   try
-    if FileExists(AMAC) then
+    if FileExists(LBookmarkFileName) then
       begin
         try
-          ReadXMLFile(LXMLBookmark,AMAC);
+          ReadXMLFile(LXMLBookmark,LBookmarkFileName);
           LXMLBookmarkPart.AppendChild(LXMLBookmarkPart.CreateElement(VT_XML_LISTOFITEMS));
           with LXMLBookmarkPart.DocumentElement do
             begin
@@ -87,6 +87,10 @@ begin
                   AppendChild(LXMLBookmarkPart.ImportNode(LXMLBookmark.FirstChild.ChildNodes[i+1],true));
                   LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
                   LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
+                  if LAVRConfigIdx>=0 then
+                    with AVRConfigArray[LAVRConfigIdx].Translator do
+                      if ReplaceUTF8Latin1Supplement or ReplaceUTF8Latin1ExtendedA or ReplaceUTF8Latin1ExtendedB then
+                        LastChild.FindNode(VT_XML_STATIONNAME).FirstChild.NodeValue:=ReplaceDiacritics(LastChild.FindNode(VT_XML_STATIONNAME).FirstChild.NodeValue,LAVRConfigIdx);
                 end;
             end;
           WriteXML(LXMLBookmarkPart,AXMLStream);
