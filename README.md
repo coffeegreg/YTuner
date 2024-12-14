@@ -159,7 +159,7 @@ https://github.com/coffeegreg/YTuner/blob/96570772b7632e678cf2ae61387a0d43208801
 YTuner's filtering and sorting functionality can be oriented by AVR device.
 You can decide about it with `CommonAVRini` setting of `ytuner.ini`.
 Common AVR config file `avr.ini` or other AVRs dedicated config files have the following capabilities:
-https://github.com/coffeegreg/YTuner/blob/273e48b94f4c1b3bd33077905ae1f4fa8ca3ee95/cfg/example-avr.ini#L1-L78
+https://github.com/coffeegreg/YTuner/blob/95c8f9d707faf45579063efba3066204e91607fd/cfg/avr.ini#L1-L163
 
 _Please read the descriptions in both `.ini` files carefully._
 ### Custom stations
