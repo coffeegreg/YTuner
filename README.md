@@ -63,6 +63,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 - Marantz
   * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
 - Denon
+  * Denon AVR-X1000 (Tested by [badekappe](https://github.com/badekappe). Thank you.)
   * Denon AVR-X1300W (Tested by [gibsnicht](https://github.com/gibsnicht). Thank you.)
   * Denon AVR-X3200W (Tested by [Larsvb0](https://github.com/Larsvb0). Thank you.)
   * Denon AVR-X3300W (Tested by [citronalco](https://github.com/citronalco). Thank you.)
@@ -71,6 +72,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon S-32 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
 - Noxon
   * Noxon iRadio 300 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
+- Revox
+  * Noxon M51 (Tested by [roland68](https://github.com/roland68). Thank you.)
 
 ## Installation
 YTuner is a standalone application and in most cases it does not require additional services, frameworks, packages, virtual machines, libraries or tools to run properly (except optional OpenSSL and/or SQLite3 libraries).
