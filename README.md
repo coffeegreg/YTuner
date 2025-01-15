@@ -68,6 +68,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon AVR-X3200W (Tested by [Larsvb0](https://github.com/Larsvb0). Thank you.)
   * Denon AVR-X3300W (Tested by [citronalco](https://github.com/citronalco). Thank you.)
   * Denon AVR-2313 (Tested by [Stijn-Daniels](https://github.com/Stijn-Daniels). Thank you.)
+  * Denon RCD-N7 (Tested by [breml](https://github.com/breml). Thank you.)
   * Denon RCD-N9 CEOL (Tested by [xaanur](https://github.com/xaanur). Thank you.)
   * Denon S-32 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
 - Noxon
