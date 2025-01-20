@@ -71,6 +71,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon RCD-N7 (Tested by [breml](https://github.com/breml). Thank you.)
   * Denon RCD-N9 CEOL (Tested by [xaanur](https://github.com/xaanur). Thank you.)
   * Denon S-32 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
+- Pioneer
+  * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
 - Noxon
   * Noxon iRadio 300 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
 - Revox
