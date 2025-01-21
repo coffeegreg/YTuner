@@ -75,8 +75,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
 - Noxon
   * Noxon iRadio 300 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
-- Revox
-  * Noxon M51 (Tested by [roland68](https://github.com/roland68). Thank you.)
+- ReVox
+  * ReVox M51 (Tested by [roland68](https://github.com/roland68). Thank you.)
 
 ## Installation
 YTuner is a standalone application and in most cases it does not require additional services, frameworks, packages, virtual machines, libraries or tools to run properly (except optional OpenSSL and/or SQLite3 libraries).
