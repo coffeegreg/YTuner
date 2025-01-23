@@ -214,8 +214,8 @@ $ sudo ./ytuner
 If you are not familiar with building Docker containers you can read [this](doc/DOCKER.md).
 
 ## Build
-You can use [CodeTyphon Studio](https://www.pilotlogic.com) or [Lazarus Free Pascal RAD IDE](https://www.lazarus-ide.org/) to build YTuner.  
-Use the latest versions of these IDE. Relevant project files are included.
+You can use [fpcupdeluxe](https://github.com/LongDirtyAnimAlf/fpcupdeluxe) or [CodeTyphon Studio](https://www.pilotlogic.com) or [Lazarus Free Pascal RAD IDE](https://www.lazarus-ide.org/) to build YTuner.  
+Use the latest versions of these IDE and FPC. Relevant project files are included.
 
 ### Dependencies
 YTuner uses [Indy - Internet Direct](https://github.com/IndySockets/Indy) library to build its own binary files. Of course, YTuner binaries no longer need any additional libraries beyond the optional OpenSSL and/or SQLite3.
