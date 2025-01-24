@@ -73,6 +73,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon S-32 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
 - Pioneer
   * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
+  * Pioneer N-50 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
+  * Pioneer XC-HM81 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
 - Noxon
   * Noxon iRadio 300 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
 - ReVox
