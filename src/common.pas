@@ -29,9 +29,9 @@ type
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.2.4';
+  APP_VERSION = '1.2.5';
   APP_COPYRIGHT = 'Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)';
-  INI_VERSION = '1.2.1';
+  INI_VERSION = '1.2.2';
 
   YTUNER_USER_AGENT = 'YTuner';
   YTUNER_HOST = 'ytunerhost';
@@ -43,7 +43,7 @@ const
   MSG_FILE_DELETE_ERROR = ' file delete error';
   MSG_FILE_CREATE_ERROR = ' file create error';
   MSG_LOADING = 'loading';
-  MSG_REMOVING = 'removing';
+  MSG_REMOVED = 'removed';
   MSG_GETTING = 'getting';
   MSG_CHANGING = 'changing';
   MSG_ERROR = 'error';
@@ -73,13 +73,56 @@ const
 
   MSG_RBUUID_CACHE_FILE = 'RB UUIDs cache file';
 
+  MSG_INI_WARNING1 = 'You are running out of INI file! Some features may not work properly!';
+  MSG_INI_WARNING2 = 'Your ytuner.ini file is outdated! Some features may not work properly!';
+  MSG_INI_WARNING3 = 'YTuner will try to fill in the missing options, but check their description and usage on https://github.com/coffeegreg/YTuner/tree/master/cfg.';
+  MSG_VTUNER_ERROR_LINK1 = 'Obslolete vTuner radio station link - trying redirect to ';
+  MSG_VTUNER_ERROR_LINK2 = 'Obslolete vTuner radio station link can not be resolved - trying redirect to your first radio station of stations.ini/yaml file.';
+  MSG_FIRST_STATION_NEEDED = 'Be sure you have at least one category and one (first one) radio station DIRECT link in stations.ini/yaml file and option "Enable=1" is placed in "[MyStations]" section of ytuner.ini file .';
+  MSG_REDIRECT_SUPPORT_NEEDED = 'Your AVR must support HTTP redirects! See "RedirectHTTPCode" option.';
+
   INI_CONFIGURATION = 'Configuration';
-  INI_RADIOBROWSER = 'RadioBrowser';
+  INI_INI_VERSION = 'INIVersion';
+  INI_IP_ADDRESS = 'IPAddress';
+  INI_ACT_AS_HOST = 'ActAsHost';
+  INI_USE_SSL = 'UseSSL';
+  INI_REDIRECT_HTTP_CODE = 'RedirectHTTPCode';
+  INI_MESSAGE_INFO_LEVEL = 'MessageInfoLevel';
+  INI_ICON_SIZE = 'IconSize';
+  INI_ICON_CACHE = 'IconCache';
+  INI_ICON_EXTENSION = 'IconEndPointExtension';
+  INI_MY_TOKEN = 'MyToken';
+  INI_COMMON_AVR_INI = 'CommonAVRini';
+  INI_CACHE_FOLDER_LOCATION = 'CacheFolderLocation';
+  INI_CONFIG_FOLDER_LOCATION = 'ConfigFolderLocation';
+  INI_DB_FOLDER_LOCATION = 'DBFolderLocation';
+  INI_DB_LIB_FILE = 'DBLibFile';
+  INI_ENABLE = 'Enable';
   INI_MYSTATIONS = 'MyStations';
+  INI_MY_STATIONS_FILE = 'MyStationsFile';
+  INI_MY_STATIONS_AUTO_REFRESH_PERIOD = 'MyStationsAutoRefreshPeriod';
+  INI_RADIOBROWSER = 'RadioBrowser';
+  INI_RB_API_URL = 'RBAPIURL';
+  INI_RB_POPULAR_AND_SEARCH_STATIONS_LIMIT = 'RBPopularAndSearchStationsLimit';
+  INI_RB_MIN_STATIONS_PER_CATEGORY = 'RBMinStationsPerCategory';
+  INI_RB_UUIDS_CACHE_TTL = 'RBUUIDsCacheTTL';
+  INI_RB_UUIDS_CACHE_AUTO_REFRESH = 'RBUUIDsCacheAutoRefresh';
+  INI_RB_CACHE_TYPE = 'RBCacheType';
+  INI_RB_CACHE_TTL = 'RBCacheTTL';
   INI_BOOKMARK = 'Bookmark';
+  INI_COMMON_BOOKMARK = 'CommonBookmark';
+  INI_BOOKMARK_STATIONS_LIMIT = 'BookmarkStationsLimit';
   INI_WEBSERVER = 'WebServer';
+  INI_WEBSERVER_IPADDRESS = 'WebServerIPAddress';
+  INI_WEBSERVER_PORT = 'WebServerPort';
   INI_DNSSERVER = 'DNSServer';
+  INI_DNSSERVER_IPADDRESS = 'DNSServerIPAddress';
+  INI_DNSSERVER_PORT = 'DNSServerPort';
+  INI_INTERCEPT_DNS = 'InterceptDNs';
+  INI_DNSSERVERS = 'DNSServers';
   INI_MAINTENANCESERVER = 'MaintenanceServer';
+  INI_MAINTENANCESERVER_IPADDRESS = 'MaintenanceServerIPAddress';
+  INI_MAINTENANCESERVER_PORT = 'MaintenanceServerPort';
 
   HTTP_HEADER_ACCEPT = 'Accept';
   HTTP_HEADER_USER_AGENT = 'User-Agent';
@@ -100,7 +143,6 @@ const
   WEBBROWSER_HTTP_HEADER_CONNECTION = 'keep-alive';
   WEBBROWSER_HTTP_HEADER_PRAGMA = 'no-cache';
 
-
   HTTP_RESPONSE_CONTENT_TYPE : array[TResponseContentType] of string = ('text/html; charset=utf-8','application/xml','image/png','image/jpeg','image/gif','image/tiff','application/json');
 
   MY_STATIONS_PREFIX = 'MS';
@@ -115,7 +157,7 @@ const
   PATH_PARAM_TOKEN = 'token';
 
   HTTP_CODE_OK = 200;
-  HTTP_CODE_FOUND = 302;
+  HTTP_CODE_REDIRECT = 302;
   HTTP_CODE_NOT_FOUND = 404;
   HTTP_CODE_UNAVAILABLE = 503;
 
@@ -127,6 +169,14 @@ const
   PATH_DB = 'db';
 
   CACHE_EXT = '.cache';
+
+  ICON_SIZE = 200;
+  ICON_CACHE = True;
+  COMMON_AVR_INI = True;
+  RB_POPULAR_AND_SEARCH_STATIONS_LIMIT = 100;
+  RB_MIN_STATIONS_PER_CATEGORY = 3;
+  RB_UUIDS_CACHE_TTL = -1;
+  RB_CACHE_TTL = -1;
 
   SQLITE_VER_X_MIN = 3;
   SQLITE_VER_Y_MIN = 33;

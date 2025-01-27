@@ -98,12 +98,12 @@ const
 var
   RadioBrowserEnabled: boolean = True;
   RBAPIURL: string = 'http://all.api.radio-browser.info';
-  RBPopularAndSearchStationsLimit: integer = 100;
-  RBMinStationsPerCategory: integer = 3;
+  RBPopularAndSearchStationsLimit: integer = RB_POPULAR_AND_SEARCH_STATIONS_LIMIT;
+  RBMinStationsPerCategory: integer = RB_MIN_STATIONS_PER_CATEGORY;
   RBUUIDsFilePath: string = '';
-  RBUUIDsCacheTTL: integer = -1;
+  RBUUIDsCacheTTL: integer = RB_UUIDS_CACHE_TTL;
   RBUUIDsCacheAutoRefresh: boolean = False;
-  RBCacheTTL: integer = 0;
+  RBCacheTTL: integer = RB_CACHE_TTL;
   RBCacheType: TCacheType = catFile;
   RBStationsUUIDs: string = '';
   RBCache: TRBCache;
@@ -1221,17 +1221,22 @@ end;
 
 procedure RemoveOldRBCacheFiles;
 var
+  LCacheFileRemoved: boolean = False;
   LCacheFile: string;
   LCacheFiles: TStringList;
 begin
   LCacheFiles:=FindAllFiles(CachePath,'RB*-*'+CACHE_EXT,False);
   try
-    if LCacheFiles.Count>0 then
+    if (RBCacheTTL>0) and (LCacheFiles.Count>0) then
       begin
-        Logging(ltDebug, string.Join(' ',[MSG_REMOVING,'old',MSG_CACHE]) );
         for LCacheFile in LCacheFiles do
-          if (RBCacheTTL>0) and (FileDateToDateTime(FileAge(LCacheFile))+(RBCacheTTL/24)<Now) then
-            DeleteFile(LCacheFile);
+          if FileDateToDateTime(FileAge(LCacheFile))+(RBCacheTTL/24)<Now then
+            begin
+              DeleteFile(LCacheFile);
+              LCacheFileRemoved:=True
+            end;
+        if LCacheFileRemoved then
+          Logging(ltDebug, string.Join(' ',['old',MSG_CACHE,MSG_REMOVED]));
       end;
   finally
     LCacheFiles.free;

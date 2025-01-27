@@ -19,14 +19,17 @@ type
 
 const
   DNS_SERVICE = 'DNS Service';
+  DNSSERVER_PORT = 53;
+  INTERCEPT_DNS = '*.vtuner.com';
+  DNS_SERVERS = '8.8.8.8,9.9.9.9';
 
 var
   IdDNSServerProxy: TIdDNSServerProxy;
   DNSServerIPAddress: string;
-  DNSServerPort: integer = 53;
+  DNSServerPort: integer = DNSSERVER_PORT;
   DNSServerEnabled: boolean = True;
-  DNSServers: string = '8.8.8.8,9.9.9.9';
-  InterceptDNs: string = '*.vtuner.com';
+  DNSServers: string = DNS_SERVERS;
+  InterceptDNs: string = INTERCEPT_DNS;
   DNSAnswerBytes: TBytes = ($C0,$0C,          // Name (Bin=1100000000001100 Dec=12). Pointer to first occurrence of the name.
                             $00,$01,          // Type: A (Host Address)
                             $00,$01,          // Class: IN

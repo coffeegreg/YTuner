@@ -74,12 +74,17 @@ const
   MSG_UNKNOWN_ROUTE = 'Unknown route';
   MSG_EMPTY_FOLDER = 'This folder is intentionally empty...';
 
+  VTUNER_HOST = 'radio567.vtuner.com';
+
+  WEBSERVER_PORT = 80;
+
 var
   WebServerIPAddress: string;
-  WebServerPort: integer = 80;
-  IconSize: integer = 200;
-  IconCache: boolean = False;
-  HTTPCodeRedirect: integer = HTTP_CODE_FOUND;
+  WebServerPort: integer = WEBSERVER_PORT;
+  IconSize: integer = ICON_SIZE;
+  IconCache: boolean = ICON_CACHE;
+  IconExtension: string = '';
+  HTTPCodeRedirect: integer = HTTP_CODE_REDIRECT;
 
 procedure RegisterServerRoutes;
 
@@ -96,7 +101,7 @@ procedure GetRadioBrowserCategoryType(AReq: TRequest; ARes: TResponse);
 procedure GetRadioBrowserCategoryStations(AReq: TRequest; ARes: TResponse);
 procedure GetBookmarkStations(AReq: TRequest; ARes: TResponse);
 procedure PlayStation(AReq: TRequest; ARes: TResponse);
-procedure GetRadioBrowserSearchedStations(AReq: TRequest; ARes: TResponse);
+procedure GetSearchedStations(AReq: TRequest; ARes: TResponse);
 procedure GetAbout(AReq: TRequest; ARes: TResponse);
 procedure GetEmpty(AReq: TRequest; ARes: TResponse);
 procedure VTunerRedirect(AReq: TRequest; ARes: TResponse);
@@ -131,7 +136,7 @@ begin
   HTTPRouter.RegisterRoute('/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP, @BookmarkService, false);
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_MY_STATIONS, @GetMyStationsCategories, false);
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_MY_STATIONS+'/:'+PATH_CATEGORY, @GetMyStationsOfCategory, false);
-  HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_ICON, @GetIcon, false);
+  HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_ICON+IconExtension, @GetIcon, false);
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_RADIOBROWSER, @GetRadioBrowserRootDirectory, false);
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_RADIOBROWSER+'/:'+PATH_CATEGORY_TYPE, @GetRadioBrowserCategoryType, false);
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_RADIOBROWSER+'/:'+PATH_CATEGORY_TYPE+'/:'+PATH_CATEGORY, @GetRadioBrowserCategoryStations, false);
@@ -150,7 +155,7 @@ begin
   HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_PLAY, @PlayStation, false);
 
 //Search stations?
-  HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_SEARCH, @GetRadioBrowserSearchedStations, false);
+  HTTPRouter.RegisterRoute('/'+PATH_ROOT+'/'+PATH_SEARCH, @GetSearchedStations, false);
 
 //Some AVR use "NavXML.asp" and "gofile" query parameter with values like "S-ByLocation" or "LocationLevelTwo".
 //We need to get some documentation and/or investigate some logs from users.
@@ -168,7 +173,7 @@ begin
 //It seems that "sSearchtype=2" is used to real stations search with "search" query parameter and "sSearchtype=1" for search podcast.
 //For now, we consider any sSearchtype values other than "3" to be searching for a station.
 
-  HTTPRouter.RegisterRoute('/'+PATH_SETUPAPP+'/*/'+PATH_SEARCH_ASP, @GetRadioBrowserSearchedStations, false);
+  HTTPRouter.RegisterRoute('/'+PATH_SETUPAPP+'/*/'+PATH_SEARCH_ASP, @GetSearchedStations, false);
 
 // Some AVRs use this endpoint without any parameters for the requested operation (add/del).
 // We can assume this is a bookmark query but how these AVR requests for operations like "add" & "del"?
@@ -690,14 +695,21 @@ begin
 end;
 
 //In some cases used to play station.
-procedure GetRadioBrowserSearchedStations(AReq: TRequest; ARes: TResponse);
+procedure GetSearchedStations(AReq: TRequest; ARes: TResponse);
 var
   LRBStations: TRBStations;
 begin
   try
     if AReq.QueryFields.Values[PATH_PARAM_SSEARCH_TYPE]='3' then    // In some cases "3" mean a "Play" option.
       begin
-        AReq.QueryFields.AddPair(PATH_PARAM_ID,AReq.QueryFields.Values[PATH_PARAM_SEARCH]);
+        case AReq.QueryFields.Values[PATH_PARAM_SEARCH].Substring(0,2) of
+          MY_STATIONS_PREFIX, RADIOBROWSER_PREFIX: AReq.QueryFields.AddPair(PATH_PARAM_ID,AReq.QueryFields.Values[PATH_PARAM_SEARCH]);
+        else // Posible original vTuner ID . Let's return information about the first station from "My Stations" instead of the original one which is unknown.
+          if MyStationsEnabled and (Length(MyStations)>0) and (Length(MyStations[0].MSStations)>0) then
+            AReq.QueryFields.AddPair(PATH_PARAM_ID,MyStations[0].MSStations[0].MSID)
+          else
+            Logging(ltDebug, MSG_FIRST_STATION_NEEDED);
+        end;
         GetStation(AReq,ARes);
       end
     else                                                            // Probably valid for "2" only.
@@ -761,19 +773,32 @@ begin
       AddHeader(HTTP_HEADER_UPGRADE_INSECURE_REQUESTS, '1');
       AddHeader(HTTP_HEADER_USER_AGENT,WEBBROWSER_HTTP_HEADER_USER_AGENT);
       try
-        Get('http://'+AReq.Host+AReq.URL);
+        Get('http://'+VTUNER_HOST+AReq.URI);
       except end;
       case ResponseStatusCode of
         301,302,303,307,308 : if (ResponseHeaders.IndexOfName('Location')>=0) then
                                 begin
-                                  LHTTP_Code:=302;
+                                  LHTTP_Code:=HTTPCodeRedirect;
                                   ARes.SetCustomHeader(HTTP_HEADER_LOCATION,Trim(ResponseHeaders.Values['Location']));
-                                  Logging(ltDebug, 'vTuner radio station link - redirect to:'+ResponseHeaders.Values['Location']);
+                                  Logging(ltDebug, MSG_VTUNER_ERROR_LINK1+ResponseHeaders.Values['Location']);
                                 end;
+        else
+          begin
+            Logging(ltDebug, MSG_VTUNER_ERROR_LINK2);
+            Logging(ltDebug, MSG_FIRST_STATION_NEEDED);
+            if MyStationsEnabled and (Length(MyStations)>0) and (Length(MyStations[0].MSStations)>0) then
+              begin
+                LHTTP_Code:=HTTPCodeRedirect;
+                ARes.SetCustomHeader(HTTP_HEADER_LOCATION,StripHttps(MyStations[0].MSStations[0].MSURL,AReq));
+              end
+            else
+              Logging(ltDebug, MSG_FIRST_STATION_NEEDED);
+          end;
       end;
     finally
       Free;
     end;
+  Logging(ltDebug, MSG_REDIRECT_SUPPORT_NEEDED);
   ServerResponse(LHTTP_Code,ctNone,ARes,'');
 end;
 
@@ -952,7 +977,8 @@ begin
       Name:=Station.MSName;
       Description:='My favorite "'+Station.MSName+'"';
       URL:=StripHttps(Station.MSURL,AReq);
-      Icon:=PATH_HTTP+URLHost+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+Station.MSID;
+
+      Icon:=PATH_HTTP+URLHost+'/'+PATH_ROOT+'/'+PATH_ICON+IconExtension+'?'+PATH_PARAM_ID+'='+Station.MSID;
       Genre:=Category;
       Bookmark:=PATH_HTTP+URLHost+'/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP+'?'+PATH_PARAM_ID+'='+Station.MSID+'&'+PATH_FAVACTION+'='+PATH_FAVACTION_ADD;
     end;
@@ -981,7 +1007,7 @@ begin
         Genre:=RBSTags;
       Mime:=RBSCodec.ToUpper;
       Bitrate:=RBSBitrate;
-      Icon:=PATH_HTTP+URLHost+'/'+PATH_ROOT+'/'+PATH_ICON+'?'+PATH_PARAM_ID+'='+UID;
+      Icon:=PATH_HTTP+URLHost+'/'+PATH_ROOT+'/'+PATH_ICON+IconExtension+'?'+PATH_PARAM_ID+'='+UID;
       Bookmark:=PATH_HTTP+URLHost+'/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP+'?'+PATH_PARAM_ID+'='+UID+'&'+PATH_FAVACTION+'='+PATH_FAVACTION_ADD;
     end;
 end;

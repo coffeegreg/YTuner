@@ -7,7 +7,7 @@ unit avr;
 interface
 
 uses
-  Classes, SysUtils, IniFiles, StrUtils, HTTPDefs, common;
+  Classes, SysUtils, IniFiles, StrUtils, HTTPDefs, common, httproute;
 
 type
   TRBFilter = record
@@ -47,8 +47,8 @@ type
 
 const
   AVR_INI_VERSION = '1.0.2';
-  AVR_INI_PROTOCOL = 'Protocol';
   AVR_INI_SECTION_CONFIGURATION = 'Configuration';
+  AVR_INI_PROTOCOL = 'Protocol';
   AVR_INI_INIVERSION = 'INIVersion';
   AVR_INI_SECTION_RADIOBROWSER_FILTERING = 'RadioBrowser Filtering';
   AVR_INI_ALLOWED_TAGS = 'AllowedTags';
@@ -102,7 +102,7 @@ function ReadAVRINIConfiguration(AAVRMAC: string):integer;
 
 implementation
 
-uses radiobrowser, radiobrowserdb, translator;
+uses radiobrowser, radiobrowserdb, translator, httpserver;
 
 function StripHttps(AURL: string; AReq: TRequest):string;
 var
@@ -154,6 +154,7 @@ begin
             end;
         end;
     end;
+
 end;
 
 function ReadAVRINIConfiguration(AAVRMAC: string):integer;

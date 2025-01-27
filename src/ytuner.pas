@@ -23,7 +23,7 @@ uses
   openssl, opensslsockets,
   {$ENDIF}
   regexpr, my_stations, vtuner, httpserver, radiobrowser, common, bookmark,
-  dnsserver, threadtimer, avr, maintenance, radiobrowserdb, translator;
+  dnsserver, threadtimer, avr, maintenance, radiobrowserdb;
 
 // {$DEFINE FREE_ON_FINAL}
 // Enable the FREE_ON_FINAL directive in IdCompilerDefines.inc of Indy library to remove standard (ie, intentional) Indy memory leaks.
@@ -107,41 +107,92 @@ begin
   with TIniFile.Create(MyAppPath+'ytuner.ini') do
     try
       try
-        LogType:=TLogType(ReadInteger(INI_CONFIGURATION,'MessageInfoLevel',3));
+        if not ValueExists(INI_CONFIGURATION,INI_MESSAGE_INFO_LEVEL) then
+          WriteInteger(INI_CONFIGURATION,INI_MESSAGE_INFO_LEVEL,4);
+        LogType:=TLogType(ReadInteger(INI_CONFIGURATION,INI_MESSAGE_INFO_LEVEL,4));
       except
         LogType:=ltError;
       end;
-      if ReadString(INI_CONFIGURATION,'INIVersion','')<>INI_VERSION then
-        Logging(ltWarning, 'You are running out of INI file or your ytuner.ini file is outdated! Some features may not work properly! Check https://github.com/coffeegreg/YTuner/tree/master/cfg for the correct INI file for your version of YTuner');
-      MyIPAddress:=GetLocalIP(ReadString(INI_CONFIGURATION,'IPAddress',MyIPAddress));
-      URLHost:=ReadString(INI_CONFIGURATION,'ActAsHost',MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress);
+      if not ValueExists(INI_CONFIGURATION,INI_INI_VERSION) then
+        begin
+          Logging(ltWarning, MSG_INI_WARNING1);
+          Logging(ltWarning, MSG_INI_WARNING3);
+        end
+      else
+        if ReadString(INI_CONFIGURATION,INI_INI_VERSION,'')<>INI_VERSION then
+          begin
+            Logging(ltWarning, MSG_INI_WARNING2);
+            Logging(ltWarning, MSG_INI_WARNING3);
+          end;
+      WriteString(INI_CONFIGURATION,INI_INI_VERSION,INI_VERSION);
+
+      if not ValueExists(INI_CONFIGURATION,INI_IP_ADDRESS) then
+        WriteString(INI_CONFIGURATION,INI_IP_ADDRESS,DEFAULT_STRING);
+      MyIPAddress:=GetLocalIP(ReadString(INI_CONFIGURATION,INI_IP_ADDRESS,MyIPAddress));
+
+      if not ValueExists(INI_CONFIGURATION,INI_ACT_AS_HOST) then
+        WriteString(INI_CONFIGURATION,INI_ACT_AS_HOST,DEFAULT_STRING);
+      URLHost:=ReadString(INI_CONFIGURATION,INI_ACT_AS_HOST,MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress);
       if URLHost.Trim.IsEmpty then
         URLHost:=MyIPAddress;
-      UseSSL:=ReadBool(INI_CONFIGURATION,'UseSSL',True);
-      IconSize:=ReadInteger(INI_CONFIGURATION,'IconSize',IconSize);
-      IconCache:=ReadBool(INI_CONFIGURATION,'IconCache',True);
-      LToken:=ReadString(INI_CONFIGURATION,'MyToken',MyToken);
-      CommonAVRini:=ReadBool(INI_CONFIGURATION,'CommonAVRini',True);
 
-      LCacheFolderLocation:=ReadString(INI_CONFIGURATION,'CacheFolderLocation',CachePath);
+      if not ValueExists(INI_CONFIGURATION,INI_USE_SSL) then
+        WriteString(INI_CONFIGURATION,INI_USE_SSL,'1');
+      UseSSL:=ReadBool(INI_CONFIGURATION,INI_USE_SSL,True);
+
+      if not ValueExists(INI_CONFIGURATION,INI_REDIRECT_HTTP_CODE) then
+        WriteInteger(INI_CONFIGURATION,INI_REDIRECT_HTTP_CODE,HTTP_CODE_REDIRECT);
+      HTTPCodeRedirect:=ReadInteger(INI_CONFIGURATION,INI_REDIRECT_HTTP_CODE,HTTP_CODE_REDIRECT);
+
+      if not ValueExists(INI_CONFIGURATION,INI_ICON_SIZE) then
+        WriteInteger(INI_CONFIGURATION,INI_ICON_SIZE,ICON_SIZE);
+      IconSize:=ReadInteger(INI_CONFIGURATION,INI_ICON_SIZE,ICON_SIZE);
+
+      if not ValueExists(INI_CONFIGURATION,INI_ICON_CACHE) then
+        WriteString(INI_CONFIGURATION,INI_ICON_CACHE,'1');
+      IconCache:=ReadBool(INI_CONFIGURATION,INI_ICON_CACHE,ICON_CACHE);
+
+      if not ValueExists(INI_CONFIGURATION,INI_ICON_EXTENSION) then
+        WriteString(INI_CONFIGURATION,INI_ICON_EXTENSION,'');
+      IconExtension:=ReadString(INI_CONFIGURATION,INI_ICON_EXTENSION,'').ToLower;
+      if IconExtension <> '' then
+        IconExtension:='.'+IconExtension.Substring(0,3);
+
+      if not ValueExists(INI_CONFIGURATION,INI_MY_TOKEN) then
+        WriteString(INI_CONFIGURATION,INI_MY_TOKEN,VT_TOKEN);
+      LToken:=ReadString(INI_CONFIGURATION,INI_MY_TOKEN,VT_TOKEN);
+
+      if not ValueExists(INI_CONFIGURATION,INI_COMMON_AVR_INI) then
+        WriteString(INI_CONFIGURATION,INI_COMMON_AVR_INI,'1');
+      CommonAVRini:=ReadBool(INI_CONFIGURATION,INI_COMMON_AVR_INI,COMMON_AVR_INI);
+
+      if not ValueExists(INI_CONFIGURATION,INI_CACHE_FOLDER_LOCATION) then
+        WriteString(INI_CONFIGURATION,INI_CACHE_FOLDER_LOCATION,DEFAULT_STRING);
+      LCacheFolderLocation:=ReadString(INI_CONFIGURATION,INI_CACHE_FOLDER_LOCATION,CachePath);
       CachePath:=IfThen(LCacheFolderLocation=DEFAULT_STRING,MyAppPath,LCacheFolderLocation);
       if not CachePath.EndsWith(DirectorySeparator) then
         CachePath:=CachePath+DirectorySeparator;
       CachePath:=CachePath+PATH_CACHE;
 
-      LConfigFolderLocation:=ReadString(INI_CONFIGURATION,'ConfigFolderLocation',ConfigPath);
+      if not ValueExists(INI_CONFIGURATION,INI_CONFIG_FOLDER_LOCATION) then
+        WriteString(INI_CONFIGURATION,INI_CONFIG_FOLDER_LOCATION,DEFAULT_STRING);
+      LConfigFolderLocation:=ReadString(INI_CONFIGURATION,INI_CONFIG_FOLDER_LOCATION,ConfigPath);
       ConfigPath:=IfThen(LConfigFolderLocation=DEFAULT_STRING,MyAppPath,LConfigFolderLocation);
       if not ConfigPath.EndsWith(DirectorySeparator) then
         ConfigPath:=ConfigPath+DirectorySeparator;
       ConfigPath:=ConfigPath+PATH_CONFIG;
 
-      LDBFolderLocation:=ReadString(INI_CONFIGURATION,'DBFolderLocation',DBPath);
+      if not ValueExists(INI_CONFIGURATION,INI_DB_FOLDER_LOCATION) then
+        WriteString(INI_CONFIGURATION,INI_DB_FOLDER_LOCATION,DEFAULT_STRING);
+      LDBFolderLocation:=ReadString(INI_CONFIGURATION,INI_DB_FOLDER_LOCATION,DBPath);
       DBPath:=IfThen(LDBFolderLocation=DEFAULT_STRING,MyAppPath,LDBFolderLocation);
       if not DBPath.EndsWith(DirectorySeparator) then
         DBPath:=DBPath+DirectorySeparator;
       DBPath:=DBPath+PATH_DB;
 
-      DBLibFile:=TryToFindSQLite3Lib(ReadString(INI_CONFIGURATION,'DBLibFile',DBLibFile));
+      if not ValueExists(INI_CONFIGURATION,INI_DB_LIB_FILE) then
+        WriteString(INI_CONFIGURATION,INI_DB_LIB_FILE,DEFAULT_STRING);
+      DBLibFile:=TryToFindSQLite3Lib(ReadString(INI_CONFIGURATION,INI_DB_LIB_FILE,DBLibFile));
 
       with TRegexpr.Create do
         try
@@ -151,26 +202,57 @@ begin
         finally
           Free;
         end;
-      MyStationsEnabled:=ReadBool(INI_MYSTATIONS,'Enable',True);
-      MyStationsFileName:=ReadString(INI_MYSTATIONS,'MyStationsFile',MyStationsFileName);
-      MyStationsAutoRefreshPeriod:=ReadInteger(INI_MYSTATIONS,'MyStationsAutoRefreshPeriod',0);
 
-      RadioBrowserEnabled:=ReadBool(INI_RADIOBROWSER,'Enable',True);
-      RBAPIURL:=ReadString(INI_RADIOBROWSER,'RBAPIURL',RBAPIURL);
-      RBPopularAndSearchStationsLimit:=ReadInteger(INI_RADIOBROWSER,'RBPopularAndSearchStationsLimit',RBPopularAndSearchStationsLimit);
-      RBMinStationsPerCategory:=ReadInteger(INI_RADIOBROWSER,'RBMinStationsPerCategory',RBMinStationsPerCategory);
-      RBUUIDsCacheTTL:=ReadInteger(INI_RADIOBROWSER,'RBUUIDsCacheTTL',RBUUIDsCacheTTL);
-      RBUUIDsCacheAutoRefresh:=ReadBool(INI_RADIOBROWSER,'RBUUIDsCacheAutoRefresh',False);
-      RBCacheTTL:=ReadInteger(INI_RADIOBROWSER,'RBCacheTTL',RBCacheTTL);
-      if RBCacheTTL<0 then RBCacheTTL:=0;
-      if ReadString(INI_RADIOBROWSER,'RBCacheType','') <> '' then
+      if not ValueExists(INI_MYSTATIONS,INI_ENABLE) then
+        WriteString(INI_MYSTATIONS,INI_ENABLE,'1');
+      MyStationsEnabled:=ReadBool(INI_MYSTATIONS,INI_ENABLE,True);
+
+      if not ValueExists(INI_MYSTATIONS,INI_MY_STATIONS_FILE) then
+        WriteString(INI_MYSTATIONS,INI_MY_STATIONS_FILE,MY_STATIONS_FILE_NANME);
+      MyStationsFileName:=ReadString(INI_MYSTATIONS,INI_MY_STATIONS_FILE,MyStationsFileName);
+
+      if not ValueExists(INI_MYSTATIONS,INI_MY_STATIONS_AUTO_REFRESH_PERIOD) then
+        WriteInteger(INI_MYSTATIONS,INI_MY_STATIONS_AUTO_REFRESH_PERIOD,0);
+      MyStationsAutoRefreshPeriod:=ReadInteger(INI_MYSTATIONS,INI_MY_STATIONS_AUTO_REFRESH_PERIOD,0);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_ENABLE) then
+        WriteString(INI_RADIOBROWSER,INI_ENABLE,'1');
+      RadioBrowserEnabled:=ReadBool(INI_RADIOBROWSER,INI_ENABLE,True);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_RB_API_URL) then
+        WriteString(INI_RADIOBROWSER,INI_RB_API_URL,RBAPIURL);
+      RBAPIURL:=ReadString(INI_RADIOBROWSER,INI_RB_API_URL,RBAPIURL);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_RB_POPULAR_AND_SEARCH_STATIONS_LIMIT) then
+        WriteInteger(INI_RADIOBROWSER,INI_RB_POPULAR_AND_SEARCH_STATIONS_LIMIT,RB_POPULAR_AND_SEARCH_STATIONS_LIMIT);
+      RBPopularAndSearchStationsLimit:=ReadInteger(INI_RADIOBROWSER,INI_RB_POPULAR_AND_SEARCH_STATIONS_LIMIT,RBPopularAndSearchStationsLimit);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_RB_MIN_STATIONS_PER_CATEGORY) then
+        WriteInteger(INI_RADIOBROWSER,INI_RB_MIN_STATIONS_PER_CATEGORY,RB_MIN_STATIONS_PER_CATEGORY);
+      RBMinStationsPerCategory:=ReadInteger(INI_RADIOBROWSER,INI_RB_MIN_STATIONS_PER_CATEGORY,RBMinStationsPerCategory);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL) then
+        WriteString(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL,'');
+      RBUUIDsCacheTTL:=ReadInteger(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL,RBUUIDsCacheTTL);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_AUTO_REFRESH) then
+        WriteString(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_AUTO_REFRESH,'0');
+      RBUUIDsCacheAutoRefresh:=ReadBool(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_AUTO_REFRESH,False);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_RB_CACHE_TTL) then
+        WriteString(INI_RADIOBROWSER,INI_RB_CACHE_TTL,'');
+      RBCacheTTL:=ReadInteger(INI_RADIOBROWSER,INI_RB_CACHE_TTL,RBCacheTTL);
+
+      if not ValueExists(INI_RADIOBROWSER,INI_RB_CACHE_TYPE) then
+        WriteString(INI_RADIOBROWSER,INI_RB_CACHE_TYPE,'catFile');
+      if ReadString(INI_RADIOBROWSER,INI_RB_CACHE_TYPE,'') <> '' then
         begin
-          LRBCacheTypeIdx:=GetEnumValue(TypeInfo(TCacheType),ReadString(INI_RADIOBROWSER,'RBCacheType','catFile'));
+          LRBCacheTypeIdx:=GetEnumValue(TypeInfo(TCacheType),ReadString(INI_RADIOBROWSER,INI_RB_CACHE_TYPE,'catFile'));
           if LRBCacheTypeIdx>=0 then
             RBCacheType:=TCacheType(LRBCacheTypeIdx)
           else
             begin
-              Logging(ltError, 'Unexpected value of RBStationsCacheType: "'+ReadString(INI_RADIOBROWSER,'RBCacheType','')+'". Default "catFile" will be used');
+              Logging(ltError, 'Unexpected value of RBStationsCacheType: "'+ReadString(INI_RADIOBROWSER,INI_RB_CACHE_TYPE,'')+'". Default "catFile" will be used');
               RBCacheType:=catMemStr;
             end;
          end
@@ -180,22 +262,57 @@ begin
           RBCacheType:=catNone;
         end;
 
-      BookmarkEnabled:=ReadBool(INI_BOOKMARK,'Enable',False);
-      CommonBookmark:=ReadBool(INI_BOOKMARK,'CommonBookmark',False);
-      BookmarkStationsLimit:=ReadInteger(INI_BOOKMARK,'BookmarkStationsLimit',BookmarkStationsLimit);
+      if not ValueExists(INI_BOOKMARK,INI_ENABLE) then
+        WriteString(INI_BOOKMARK,INI_ENABLE,'1');
+      BookmarkEnabled:=ReadBool(INI_BOOKMARK,INI_ENABLE,True);
 
-      WebServerIPAddress:=GetLocalIP(ReadString(INI_WEBSERVER,'WebServerIPAddress',MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress));
-      WebServerPort:=ReadInteger(INI_WEBSERVER,'WebServerPort',WebServerPort);
+      if not ValueExists(INI_BOOKMARK,INI_COMMON_BOOKMARK) then
+        WriteString(INI_BOOKMARK,INI_COMMON_BOOKMARK,'1');
+      CommonBookmark:=ReadBool(INI_BOOKMARK,INI_COMMON_BOOKMARK,True);
 
-      DNSServerEnabled:=ReadBool(INI_DNSSERVER,'Enable',True);
-      DNSServerIPAddress:=GetLocalIP(ReadString(INI_DNSSERVER,'DNSServerIPAddress',MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress));
-      DNSServerPort:=ReadInteger(INI_DNSSERVER,'DNSServerPort',DNSServerPort);
-      InterceptDNs:=ReadString(INI_DNSSERVER,'InterceptDNs',InterceptDNs);
-      DNSServers:=ReadString(INI_DNSSERVER,'DNSServers',DNSServers);
+      if not ValueExists(INI_BOOKMARK,INI_BOOKMARK_STATIONS_LIMIT) then
+        WriteInteger(INI_BOOKMARK,INI_BOOKMARK_STATIONS_LIMIT,BOOKMARK_STATIONS_LIMIT);
+      BookmarkStationsLimit:=ReadInteger(INI_BOOKMARK,INI_BOOKMARK_STATIONS_LIMIT,BookmarkStationsLimit);
 
-      MaintenanceServiceEnabled:=ReadBool(INI_MAINTENANCESERVER,'Enable',True);
-      MaintenanceServerIPAddress:=GetLocalIP(ReadString(INI_MAINTENANCESERVER,'MaintenanceServerIPAddress',MaintenanceServerIPAddress).Replace(DEFAULT_STRING,MaintenanceServerIPAddress));
-      MaintenanceServerPort:=ReadInteger(INI_MAINTENANCESERVER,'MaintenanceServerPort',MaintenanceServerPort);
+      if not ValueExists(INI_WEBSERVER,INI_WEBSERVER_IPADDRESS) then
+        WriteString(INI_WEBSERVER,INI_WEBSERVER_IPADDRESS,DEFAULT_STRING);
+      WebServerIPAddress:=GetLocalIP(ReadString(INI_WEBSERVER,INI_WEBSERVER_IPADDRESS,MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress));
+
+      if not ValueExists(INI_WEBSERVER,INI_WEBSERVER_PORT) then
+        WriteInteger(INI_WEBSERVER,INI_WEBSERVER_PORT,WEBSERVER_PORT);
+      WebServerPort:=ReadInteger(INI_WEBSERVER,INI_WEBSERVER_PORT,WebServerPort);
+
+      if not ValueExists(INI_DNSSERVER,INI_ENABLE) then
+        WriteString(INI_DNSSERVER,INI_ENABLE,'1');
+      DNSServerEnabled:=ReadBool(INI_DNSSERVER,INI_ENABLE,True);
+
+      if not ValueExists(INI_DNSSERVER,INI_DNSSERVER_IPADDRESS) then
+        WriteString(INI_DNSSERVER,INI_DNSSERVER_IPADDRESS,DEFAULT_STRING);
+      DNSServerIPAddress:=GetLocalIP(ReadString(INI_DNSSERVER,INI_DNSSERVER_IPADDRESS,MyIPAddress).Replace(DEFAULT_STRING,MyIPAddress));
+
+      if not ValueExists(INI_DNSSERVER,INI_DNSSERVER_PORT) then
+        WriteInteger(INI_DNSSERVER,INI_DNSSERVER_PORT,DNSSERVER_PORT);
+      DNSServerPort:=ReadInteger(INI_DNSSERVER,INI_DNSSERVER_PORT,DNSServerPort);
+
+      if not ValueExists(INI_DNSSERVER,INI_INTERCEPT_DNS) then
+        WriteString(INI_DNSSERVER,INI_INTERCEPT_DNS,INTERCEPT_DNS);
+      InterceptDNs:=ReadString(INI_DNSSERVER,INI_INTERCEPT_DNS,InterceptDNs);
+
+      if not ValueExists(INI_DNSSERVER,INI_DNSSERVERS) then
+        WriteString(INI_DNSSERVER,INI_DNSSERVERS,DNS_SERVERS);
+      DNSServers:=ReadString(INI_DNSSERVER,INI_DNSSERVERS,DNSServers);
+
+      if not ValueExists(INI_MAINTENANCESERVER,INI_ENABLE) then
+        WriteString(INI_MAINTENANCESERVER,INI_ENABLE,'0');
+      MaintenanceServiceEnabled:=ReadBool(INI_MAINTENANCESERVER,INI_ENABLE,False);
+
+      if not ValueExists(INI_MAINTENANCESERVER,INI_MAINTENANCESERVER_IPADDRESS) then
+        WriteString(INI_MAINTENANCESERVER,INI_MAINTENANCESERVER_IPADDRESS,MAINTENANCESERVER_IPADDRESS);
+      MaintenanceServerIPAddress:=GetLocalIP(ReadString(INI_MAINTENANCESERVER,INI_MAINTENANCESERVER_IPADDRESS,MaintenanceServerIPAddress).Replace(DEFAULT_STRING,MaintenanceServerIPAddress));
+
+      if not ValueExists(INI_MAINTENANCESERVER,INI_MAINTENANCESERVER_PORT) then
+        WriteInteger(INI_MAINTENANCESERVER,INI_MAINTENANCESERVER_PORT,MAINTENANCESERVER_PORT);
+      MaintenanceServerPort:=ReadInteger(INI_MAINTENANCESERVER,INI_MAINTENANCESERVER_PORT,MaintenanceServerPort);
     finally
       Free;
     end;

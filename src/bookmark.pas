@@ -16,6 +16,7 @@ const
   PATH_FAVACTION = 'fav';
   PATH_FAVACTION_ADD = 'add';
   PATH_FAVACTION_DEL = 'del';
+  BOOKMARK_STATIONS_LIMIT = 100;
 
 function GetBookmarkFileName(AMAC: string): string;
 function GetBookmarkItemsCount(AMAC: string): integer;
@@ -26,7 +27,7 @@ procedure SetBookmark(AMAC, AAction: string; ANode: TDOMNode);
 var
   BookmarkEnabled: boolean = True;
   CommonBookmark: boolean = False;
-  BookmarkStationsLimit: integer = 100;
+  BookmarkStationsLimit: integer = BOOKMARK_STATIONS_LIMIT;
 
 implementation
 

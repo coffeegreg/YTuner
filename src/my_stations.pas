@@ -12,7 +12,7 @@ uses
 
 const
   MY_STATIONS_EXT : Array Of AnsiString = ('.ini','.yaml','.yml');
-
+  MY_STATIONS_FILE_NANME = 'stations.ini';
 type
   TMyStation = record
                  MSID, MSName, MSURL, MSLogoURL: string;
@@ -36,7 +36,7 @@ function ReadMyStationsYAMLFile(AMyStationsFileName: string): boolean;
 
 var
   MyStationsEnabled: boolean = True;
-  MyStationsFileName: string = 'stations.ini';
+  MyStationsFileName: string = MY_STATIONS_FILE_NANME;
   MyStationsAutoRefreshPeriod: integer = 0;
   MyStationsFileAge: LongInt = 0;
   MyStationsFileCRC32: LongWord = 0;

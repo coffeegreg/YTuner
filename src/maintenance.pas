@@ -22,14 +22,17 @@ type
 
 const
   MAINTENANCE_SERVICE = 'Maintenance Service';
+  MAINTENANCESERVER_IPADDRESS = '127.0.0.1';
+  MAINTENANCESERVER_PORT = 8080;
   MSG_SERVICE = 'service';
   MSG_SHUTTING_DOWN = 'Shutting down..';
   MSG_DONE = 'Done';
 
+
 var
   MaintenanceServiceEnabled: boolean = False;
-  MaintenanceServerIPAddress: string = '127.0.0.1';
-  MaintenanceServerPort: integer = 8080;
+  MaintenanceServerIPAddress: string = MAINTENANCESERVER_IPADDRESS;
+  MaintenanceServerPort: integer = MAINTENANCESERVER_PORT;
 
 function MaintenaceHTTPServerThread(AP:Pointer):PtrInt;
 procedure StartMaintenaceHTTPServer;

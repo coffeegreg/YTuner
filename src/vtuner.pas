@@ -84,8 +84,9 @@ const
   VT_XML_ENCRYPTEDTOKEN = '<EncryptedToken></EncryptedToken>';
   PATH_PARAM_DUMMY = '?ytuner=true';
 
+  VT_TOKEN = '0123456789ABCDEF';
 var
-  MyToken: string = '0123456789ABCDEF';
+  MyToken: string = VT_TOKEN;
 
 function AddYTunerParameter(URL: string): string;
 
