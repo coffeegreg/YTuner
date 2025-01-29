@@ -62,6 +62,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Yamaha NP-S2000  (Tested by Ice64zzz / [Ice64zzz](https://github.com/Ice64zzz). Thank you.)
 - Marantz
   * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
+  * Marantz M-CR611 (Tested by [aj-way](https://github.com/aj-way). Thank you.)
 - Denon
   * Denon AVR-X1000 (Tested by [badekappe](https://github.com/badekappe). Thank you.)
   * Denon AVR-X1200W (Tested by [landolfi-us](https://github.com/landolfi-us). Thank you.)
