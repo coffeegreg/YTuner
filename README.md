@@ -78,6 +78,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
   * Pioneer N-50 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
   * Pioneer XC-HM81 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
+  * Pioneer XC-HM82-K (Tested by [314ns](https://github.com/314ns). Thank you.)
   * Pioneer VSX-923 (Tested by [Mr-Playground](https://github.com/Mr-Playground). Thank you.)
 - T+A
   * T+A Music Player Balanced (Tested by [AlexViridi](https://github.com/AlexViridi). Thank you.)
