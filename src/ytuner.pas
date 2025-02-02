@@ -232,16 +232,26 @@ begin
       RBMinStationsPerCategory:=ReadInteger(INI_RADIOBROWSER,INI_RB_MIN_STATIONS_PER_CATEGORY,RBMinStationsPerCategory);
 
       if not ValueExists(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL) then
-        WriteString(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL,'');
+        WriteString(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL,'0');
       RBUUIDsCacheTTL:=ReadInteger(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL,RBUUIDsCacheTTL);
+      if RBUUIDsCacheTTL<0 then
+        begin
+          WriteString(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_TTL,'0');
+          RBUUIDsCacheTTL:=0;
+        end;
 
       if not ValueExists(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_AUTO_REFRESH) then
         WriteString(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_AUTO_REFRESH,'0');
       RBUUIDsCacheAutoRefresh:=ReadBool(INI_RADIOBROWSER,INI_RB_UUIDS_CACHE_AUTO_REFRESH,False);
 
       if not ValueExists(INI_RADIOBROWSER,INI_RB_CACHE_TTL) then
-        WriteString(INI_RADIOBROWSER,INI_RB_CACHE_TTL,'');
+        WriteString(INI_RADIOBROWSER,INI_RB_CACHE_TTL,'0');
       RBCacheTTL:=ReadInteger(INI_RADIOBROWSER,INI_RB_CACHE_TTL,RBCacheTTL);
+      if RBCacheTTL<0 then
+        begin
+          WriteString(INI_RADIOBROWSER,INI_RB_CACHE_TTL,'0');
+          RBCacheTTL:=0;
+        end;
 
       if not ValueExists(INI_RADIOBROWSER,INI_RB_CACHE_TYPE) then
         WriteString(INI_RADIOBROWSER,INI_RB_CACHE_TYPE,'catFile');

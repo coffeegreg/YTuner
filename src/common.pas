@@ -29,7 +29,7 @@ type
 
 const
   APP_NAME = 'YTuner';
-  APP_VERSION = '1.2.5';
+  APP_VERSION = '1.2.6';
   APP_COPYRIGHT = 'Copyright (c) 2024 Greg P. (https://github.com/coffeegreg)';
   INI_VERSION = '1.2.2';
 
@@ -147,6 +147,7 @@ const
 
   MY_STATIONS_PREFIX = 'MS';
   RADIOBROWSER_PREFIX = 'RB';
+  UNKNOWN_PREFIX = 'UN';
   PATH_MY_STATIONS = 'mystations';
 
   PATH_PARAM_ID = 'id';
@@ -175,8 +176,8 @@ const
   COMMON_AVR_INI = True;
   RB_POPULAR_AND_SEARCH_STATIONS_LIMIT = 100;
   RB_MIN_STATIONS_PER_CATEGORY = 3;
-  RB_UUIDS_CACHE_TTL = -1;
-  RB_CACHE_TTL = -1;
+  RB_UUIDS_CACHE_TTL = 0;
+  RB_CACHE_TTL = 0;
 
   SQLITE_VER_X_MIN = 3;
   SQLITE_VER_Y_MIN = 33;

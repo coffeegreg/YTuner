@@ -698,17 +698,31 @@ end;
 procedure GetSearchedStations(AReq: TRequest; ARes: TResponse);
 var
   LRBStations: TRBStations;
+  LDeviceID: string;
 begin
   try
     if AReq.QueryFields.Values[PATH_PARAM_SSEARCH_TYPE]='3' then    // In some cases "3" mean a "Play" option.
       begin
         case AReq.QueryFields.Values[PATH_PARAM_SEARCH].Substring(0,2) of
           MY_STATIONS_PREFIX, RADIOBROWSER_PREFIX: AReq.QueryFields.AddPair(PATH_PARAM_ID,AReq.QueryFields.Values[PATH_PARAM_SEARCH]);
-        else // Posible original vTuner ID . Let's return information about the first station from "My Stations" instead of the original one which is unknown.
-          if MyStationsEnabled and (Length(MyStations)>0) and (Length(MyStations[0].MSStations)>0) then
-            AReq.QueryFields.AddPair(PATH_PARAM_ID,MyStations[0].MSStations[0].MSID)
-          else
-            Logging(ltDebug, MSG_FIRST_STATION_NEEDED);
+        else
+          begin
+            LDeviceID:=IfThen(AReq.QueryFields.IndexOfName(PATH_PARAM_MAC)>=0,AReq.QueryFields.Values[PATH_PARAM_MAC],'?');
+            Logging(ltDebug, 'Device : '+LDeviceID+' -> '+AReq.Host);
+            if  LDeviceID='?' then
+              LDeviceID:=AReq.Host;
+            if FileExists(ConfigPath+DirectorySeparator+LDeviceID+'.xml') then
+              begin
+                if AReq.QueryFields.IndexOfName(PATH_PARAM_MAC)<0 then
+                  AReq.QueryFields.AddPair(PATH_PARAM_MAC,LDeviceID);
+                AReq.QueryFields.AddPair(PATH_PARAM_ID,'UNB'+AReq.QueryFields.Values[PATH_PARAM_SEARCH]);
+              end
+            else
+              if MyStationsEnabled and (Length(MyStations)>0) and (Length(MyStations[0].MSStations)>0) then
+                AReq.QueryFields.AddPair(PATH_PARAM_ID,MyStations[0].MSStations[0].MSID)
+              else
+                Logging(ltDebug, MSG_FIRST_STATION_NEEDED);
+          end
         end;
         GetStation(AReq,ARes);
       end

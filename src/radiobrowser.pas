@@ -224,8 +224,6 @@ begin
 end;
 
 function LoadRBStationsUUIDs: boolean;
-var
-  LFA: Int64;
 
   function LoadRBStationsUUIDsFromFile:boolean;
   var
@@ -261,8 +259,7 @@ begin
           else
             begin
               Logging(ltInfo, MSG_SUCCESSFULLY_LOADED+IfThen(RBStationsUUIDs.IsEmpty,'0',IntToStr(RBStationsUUIDs.CountChar(',')+1))+' RB UUIDs from cache file');
-              LFA:=FileAge(CachePath+DirectorySeparator+RADIOBROWSER_UUIDS_FILE);
-              if (LFA<>-1) and ((RBUUIDsCacheTTL<0) or (HoursBetween(Now,FileDateToDateTime(LFA))<RBUUIDsCacheTTL)) then
+              if (RBUUIDsCacheTTL=0) or (FileDateToDateTime(FileAge(CachePath+DirectorySeparator+RADIOBROWSER_UUIDS_FILE))+(RBUUIDsCacheTTL/24) > Now) then
                 Result:=True
               else
                 Logging(ltInfo, MSG_RBUUID_CACHE_FILE+' is older then '+IntToStr(RBUUIDsCacheTTL)+' hours. Refreshing RB UUIDs list..');

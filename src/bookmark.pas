@@ -144,8 +144,10 @@ begin
             with LXMLBookmarkPart.DocumentElement do
               begin
                 AppendChild(LXMLBookmarkPart.ImportNode(LXMLBookmark.FirstChild.ChildNodes[LStationIdx],true));
-                LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
-                LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
+                if LastChild.FindNode(VT_XML_LOGO).HasChildNodes then
+                  LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_LOGO).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
+                if LastChild.FindNode(VT_XML_BOOKMARK).HasChildNodes then
+                  LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue:=StringReplace(LastChild.FindNode(VT_XML_BOOKMARK).FirstChild.NodeValue,YTUNER_HOST,URLHost,[rfIgnoreCase]);
                 WriteXML(LXMLBookmarkPart,AXMLStream);
               end;
         except
