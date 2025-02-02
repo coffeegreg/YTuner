@@ -88,6 +88,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Noxon iRadio 300 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
 - ReVox
   * ReVox M51 (Tested by [roland68](https://github.com/roland68). Thank you.)
+- Libratone
+  * Libratone Zipp Speaker (Tested by [ndx1905-github](https://github.com/ndx1905-github). Thank you. /Read https://github.com/coffeegreg/YTuner/issues/58 to find out how to use it/)
 
 ## Installation
 YTuner is a standalone application and in most cases it does not require additional services, frameworks, packages, virtual machines, libraries or tools to run properly (except optional OpenSSL and/or SQLite3 libraries).
