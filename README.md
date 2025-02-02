@@ -82,6 +82,13 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer VSX-923 (Tested by [Mr-Playground](https://github.com/Mr-Playground). Thank you.)
 - Harman Kardon
   * Harman Kardon AVR 161 (Tested by [sivenjust](https://github.com/sivenjust). Thank you.)
+- Pro-Ject
+  * Pro-Ject Stream Box DS (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
+  * Pro-Ject Stream Box DS net (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
+  * Pro-Ject Stream Box DS+ (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
+  * Pro-Ject Stream Box DSA (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
+  * Pro-Ject Stream Box DS2T (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
+  * Pro-Ject Stream Box RS (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
 - T+A
   * T+A Music Player Balanced (Tested by [AlexViridi](https://github.com/AlexViridi). Thank you.)
 - Noxon
