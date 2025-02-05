@@ -82,6 +82,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer VSX-923 (Tested by [Mr-Playground](https://github.com/Mr-Playground). Thank you.)
 - Harman Kardon
   * Harman Kardon AVR 161 (Tested by [sivenjust](https://github.com/sivenjust). Thank you.)
+  * Harman Kardon AVR 170 (Tested by [Onsl](https://github.com/Onsl). Thank you.)
 - Pro-Ject
   * Pro-Ject Stream Box DS (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
   * Pro-Ject Stream Box DS net (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
