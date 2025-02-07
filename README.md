@@ -59,7 +59,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Yamaha RX-A820 (Tested by [Prideland](https://github.com/Prideland). Thank you.)
   * Yamaha RX-V500D (Tested by [qsm101](https://github.com/qsm101). Thank you.)
   * Yamaha DSP-Z7 (Tested by Beatrice / [TheBossME](https://github.com/TheBossME). Thank you.)
-  * Yamaha NP-S2000  (Tested by Ice64zzz / [Ice64zzz](https://github.com/Ice64zzz). Thank you.)
+  * Yamaha NP-S2000  (Tested by [Ice64zzz](https://github.com/Ice64zzz). Thank you.)
 - Marantz
   * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
   * Marantz M-CR611 (Tested by [aj-way](https://github.com/aj-way). Thank you.)
@@ -77,10 +77,12 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 - Pioneer
   * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
   * Pioneer N-50 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
+  * Pioneer X-HM71 (Tested by [Gilles94500](https://github.com/Gilles94500). Thank you.)
   * Pioneer XC-HM81 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
   * Pioneer XC-HM82-K (Tested by [314ns](https://github.com/314ns). Thank you.)
   * Pioneer VSX-923 (Tested by [Mr-Playground](https://github.com/Mr-Playground). Thank you.)
 - Harman Kardon
+  * Harman Kardon AVR 151 (Tested by [brmln](https://github.com/brmln). Thank you.)
   * Harman Kardon AVR 161 (Tested by [sivenjust](https://github.com/sivenjust). Thank you.)
   * Harman Kardon AVR 170 (Tested by [Onsl](https://github.com/Onsl). Thank you.)
 - Pro-Ject
