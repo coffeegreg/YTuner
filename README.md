@@ -80,6 +80,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer X-HM71 (Tested by [Gilles94500](https://github.com/Gilles94500). Thank you.)
   * Pioneer XC-HM81 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
   * Pioneer XC-HM82-K (Tested by [314ns](https://github.com/314ns). Thank you.)
+  * Pioneer X-HM72-S (Tested by [NeoXTof](https://github.com/NeoXTof). Thank you.)
   * Pioneer VSX-923 (Tested by [Mr-Playground](https://github.com/Mr-Playground). Thank you.)
 - Harman Kardon
   * Harman Kardon AVR 151 (Tested by [brmln](https://github.com/brmln). Thank you.)
