@@ -77,6 +77,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 - Pioneer
   * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
   * Pioneer N-50 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
+  * Pioneer N-70A (Tested by [SuperMyron](https://github.com/SuperMyron). Thank you.)
   * Pioneer X-HM71 (Tested by [Gilles94500](https://github.com/Gilles94500). Thank you.)
   * Pioneer XC-HM81 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
   * Pioneer XC-HM82-K (Tested by [314ns](https://github.com/314ns). Thank you.)
