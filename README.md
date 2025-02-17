@@ -87,6 +87,9 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Harman Kardon AVR 151 (Tested by [brmln](https://github.com/brmln). Thank you.)
   * Harman Kardon AVR 161 (Tested by [sivenjust](https://github.com/sivenjust). Thank you.)
   * Harman Kardon AVR 170 (Tested by [Onsl](https://github.com/Onsl). Thank you.)
+- Onkyo
+  * Onkyo T-4070 (Tested by [J1So2](https://github.com/J1So2). Thank you.)
+  * Onkyo TX-NR818 (Tested by [J1So2](https://github.com/J1So2). Thank you.)
 - Pro-Ject
   * Pro-Ject Stream Box DS (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
   * Pro-Ject Stream Box DS net (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
@@ -98,6 +101,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * T+A Music Player Balanced (Tested by [AlexViridi](https://github.com/AlexViridi). Thank you.)
 - Noxon
   * Noxon iRadio 300 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
+  * Noxon Nova II (Tested by [J1So2](https://github.com/J1So2). Thank you.)
 - ReVox
   * ReVox M51 (Tested by [roland68](https://github.com/roland68). Thank you.)
 - TEAC
