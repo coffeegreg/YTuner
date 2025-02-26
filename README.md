@@ -13,7 +13,7 @@ If you own one (or even more) of the vTuner-enabled AVRs mentioned above and wan
 YCast is a great project, but my goal was to run a similar service on a very low-spec platform where python along with packages turned out to be too heavy and too slow.
 Now, with YTuner you can enjoy improved functionality at full speed of ultra lightweight native app on operating systems such as:
 
-* Windows, Linux, macOS, BSD, Solaris, Raspberry Pi OS, OpenWRT
+* Linux, macOS, BSD, Solaris, Raspberry Pi OS, OpenWRT, Windows (in this case you have to build your YTuner binaries yourself)
 
 and with selected CPU architecture:
 
@@ -246,7 +246,7 @@ $ sudo ./ytuner
 If you are not familiar with building Docker containers you can read [this](doc/DOCKER.md).
 
 ## Build
-You can use [fpcupdeluxe](https://github.com/LongDirtyAnimAlf/fpcupdeluxe) or [CodeTyphon Studio](https://www.pilotlogic.com) or [Lazarus Free Pascal RAD IDE](https://www.lazarus-ide.org/) to build YTuner.  
+You can use [Lazarus Free Pascal RAD IDE](https://www.lazarus-ide.org/) to build YTuner. 
 Use the latest versions of these IDE and FPC. Relevant project files are included.
 
 ### Dependencies
