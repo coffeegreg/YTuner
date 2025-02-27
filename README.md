@@ -13,7 +13,7 @@ If you own one (or even more) of the vTuner-enabled AVRs mentioned above and wan
 YCast is a great project, but my goal was to run a similar service on a very low-spec platform where python along with packages turned out to be too heavy and too slow.
 Now, with YTuner you can enjoy improved functionality at full speed of ultra lightweight native app on operating systems such as:
 
-* Linux, macOS, BSD, Solaris, Raspberry Pi OS, OpenWRT, Windows (in this case you have to build your YTuner binaries yourself)
+* Linux, macOS, BSD, Solaris, Raspberry Pi OS, OpenWRT, Windows
 
 and with selected CPU architecture:
 
@@ -234,14 +234,16 @@ You can configure YTuner to use one common bookmark file (`bookmark.xml`) for al
 See [Application configuration](README.md#application-configuration) section above.
 
 ## Running the application
-### Windows
-Simply execute `ytuner.exe`. 
-
 ### Linux / Unix (Solaris, BSD) / macOS
 If you credentials meet all requirements mentioned above just go to your ytuner directory and start application or simple use `sudo` to execute application: 
 ```
 $ sudo ./ytuner
 ```
+### Windows
+>Tip: In this case you have to build your YTuner binaries yourself.
+
+Simply execute `ytuner.exe`. 
+
 ### Docker container
 If you are not familiar with building Docker containers you can read [this](doc/DOCKER.md).
 
