@@ -239,7 +239,7 @@ If you credentials meet all requirements mentioned above just go to your ytuner 
 ```
 $ sudo ./ytuner
 ```
-Do not forget to add execute privileges to ytuner on linux/*nix systems with a command like chmod +x ytuner.
+Do not forget to add execute privileges to `ytuner` on linux/*nix systems with a command like `chmod +x ytuner`.
 ### Windows
 >Tip: In this case you have to build your YTuner binaries yourself.
 
