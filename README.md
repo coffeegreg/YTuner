@@ -85,6 +85,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer X-HM72-S (Tested by [NeoXTof](https://github.com/NeoXTof). Thank you.)
   * Pioneer VSX-923 (Tested by [Mr-Playground](https://github.com/Mr-Playground). Thank you.)
   * Pioneer PDX-Z9 (Tested by Freddy / [Freleo](https://github.com/Freleo). Thank you.)
+  * Pioneer N-P01-K (Tested by [ManuISEN](https://github.com/ManuISEN). Thank you.)
 - Harman Kardon
   * Harman Kardon AVR 151 (Tested by [brmln](https://github.com/brmln). Thank you.)
   * Harman Kardon AVR 161 (Tested by [sivenjust](https://github.com/sivenjust). Thank you.)
