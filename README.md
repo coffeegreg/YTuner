@@ -87,6 +87,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer PDX-Z9 (Tested by Freddy / [Freleo](https://github.com/Freleo). Thank you.)
   * Pioneer N-P01-K (Tested by [ManuISEN](https://github.com/ManuISEN). Thank you.)
   * Pioneer SC-79 (Tested by [LbL-GH](https://github.com/LbL-GH)). Thank you.)
+  * Pioneer SC-1224 (Tested by [eefm](https://github.com/eefm)). Thank you.)
 - Harman Kardon
   * Harman Kardon AVR 151 (Tested by [brmln](https://github.com/brmln). Thank you.)
   * Harman Kardon AVR 161 (Tested by [sivenjust](https://github.com/sivenjust). Thank you.)
@@ -253,7 +254,7 @@ If you are not familiar with building Docker containers you can read [this](doc/
 
 ## Build
 You can use [Lazarus Free Pascal RAD IDE](https://www.lazarus-ide.org/) to build YTuner. 
-Use the latest versions of these IDE and FPC. Relevant project files are included.
+Use the latest versions of IDE and FPC. Relevant project file is included.
 
 ### Dependencies
 YTuner uses [Indy - Internet Direct](https://github.com/IndySockets/Indy) library to build its own binary files. Of course, YTuner binaries no longer need any additional libraries beyond the optional OpenSSL and/or SQLite3.
