@@ -56,6 +56,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Yamaha RX-V677 (Tested by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
   * Yamaha RX-V777 (Confirmed by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
   * Yamaha RX-V3900 (Tested by [BeryBurnout](https://github.com/BeryBurnout). Thank you.)
+  * Yamaha RX-V477 (Tested by [forumgithub010524](https://github.com/forumgithub010524). Thank you.)
   * Yamaha RX-A820 (Tested by [Prideland](https://github.com/Prideland). Thank you.)
   * Yamaha RX-V500D (Tested by [qsm101](https://github.com/qsm101). Thank you.)
   * Yamaha DSP-Z7 (Tested by Beatrice / [TheBossME](https://github.com/TheBossME). Thank you.)
