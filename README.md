@@ -90,6 +90,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer N-P01-K (Tested by [ManuISEN](https://github.com/ManuISEN). Thank you.)
   * Pioneer SC-79 (Tested by [LbL-GH](https://github.com/LbL-GH)). Thank you.)
   * Pioneer SC-1224 (Tested by [eefm](https://github.com/eefm)). Thank you.)
+  * Pioneer SC-2022 (Tested by [ModLogNet](https://github.com/ModLogNet)). Thank you.)
   * Pioneer TSX-528 (Tested by [WolfgangArndt](https://github.com/WolfgangArndt). Thank you.)
 - Harman Kardon
   * Harman Kardon AVR 151 (Tested by [brmln](https://github.com/brmln). Thank you.)
