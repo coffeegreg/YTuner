@@ -79,6 +79,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon RCD-N7 (Tested by [breml](https://github.com/breml). Thank you.)
   * Denon RCD-N9 CEOL (Tested by [xaanur](https://github.com/xaanur). Thank you.)
   * Denon S-32 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
+  * Denon DNP-F109 (Confirmed by [jpaudioa4](https://github.com/jpaudioa4). Thank you.)
 - Pioneer
   * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
   * Pioneer N-50 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
@@ -102,6 +103,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 - Onkyo
   * Onkyo T-4070 (Tested by [J1So2](https://github.com/J1So2). Thank you.)
   * Onkyo TX-NR818 (Tested by [J1So2](https://github.com/J1So2). Thank you.)
+  * Onkyo R-N855 (Confirmed by [jpaudioa4](https://github.com/jpaudioa4). Thank you.)
 - Pro-Ject
   * Pro-Ject Stream Box DS (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
   * Pro-Ject Stream Box DS net (Tested by [ArnoGr](https://github.com/ArnoGr). Thank you.)
@@ -117,7 +119,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
 - ReVox
   * ReVox M51 (Tested by [roland68](https://github.com/roland68). Thank you.)
 - TEAC
-  * TEAC CR-H700 (Tested by [J-K-L-8617](https://github.com/J-K-L-8617). Thank you.)
+  * Teac CR-H500NT (Confirmed by [jpaudioa4](https://github.com/jpaudioa4). Thank you.)
+  * Teac CR-H700 (Tested by [J-K-L-8617](https://github.com/J-K-L-8617). Thank you.)
 - Libratone
   * Libratone Zipp Speaker (Tested by [ndx1905-github](https://github.com/ndx1905-github). Thank you. /Read https://github.com/coffeegreg/YTuner/discussions/68 and/or https://github.com/coffeegreg/YTuner/issues/58 to find out how to use it/)
 
@@ -191,7 +194,7 @@ YTuner has a built-in multi-threaded web server that listens on TCP port 80 so y
 >Tip: In some special cases, it may be necessary to change the default TCP port 80 to another. You can do this by editing the YTuner ini file. See [Application configuration](README.md#application-configuration) section below.
 
 ### YTuner DNS Service
-YTuner has a built-in multi-threaded DNS proxy server that listens on UDP port 53. This feature is optional and you can simple disable it and/or configure by editing configuration .ini file `ytuner.ini` (See [Application configuration](README.md#application-configuration) section below).
+YTuner has a built-in multi-threaded DNS server that listens on UDP port 53. This feature is optional and you can simple disable it and/or configure by editing configuration .ini file `ytuner.ini` (See [Application configuration](README.md#application-configuration) section below).
 You can also use your favorite DNS server like `dnsmasq`.  
 ***Most important is to point `*.vtuner.com` domain to you YTuner machine and set all DNS servers on your AVR config to your YTuner machine IP address.***  
 >Tip: In some special cases, it may be necessary to change the default UDP port 53 to another. You can do this by editing the YTuner ini file. See [Application configuration](README.md#application-configuration) section below.
