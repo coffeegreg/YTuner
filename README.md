@@ -66,6 +66,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Marantz NR1607 (Tested by [brietman](https://github.com/brietman). Thank you.)
   * Marantz M-CR610 (Tested by [dzyndzla](https://github.com/dzyndzla). Thank you.)
   * Marantz M-CR611 (Tested by [aj-way](https://github.com/aj-way). Thank you.)
+  * Marantz SR7008 (Tested by [avbohemen](https://github.com/avbohemen). Thank you.)
 - Denon
   * Denon AVR-X1000 (Tested by [badekappe](https://github.com/badekappe). Thank you.)
   * Denon AVR-X1200W (Tested by [landolfi-us](https://github.com/landolfi-us). Thank you.)
