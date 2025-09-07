@@ -54,6 +54,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Yamaha RX-V673
   * Yamaha RX-V675 (Tested by [seldam](https://github.com/seldam). Thank you.)
   * Yamaha RX-V677 (Tested by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
+  * Yamaha RX-V773 (Tested by d1vzero / [d1vzero](https://github.com/d1vzero). Thank you.)
   * Yamaha RX-V777 (Confirmed by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
   * Yamaha RX-V477 (Tested by [forumgithub010524](https://github.com/forumgithub010524). Thank you.)
   * Yamaha RX-V3900 (Tested by [BeryBurnout](https://github.com/BeryBurnout). Thank you.)
@@ -67,6 +68,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Marantz M-CR610 (Tested by [dzyndzla](https://github.com/dzyndzla). Thank you.)
   * Marantz M-CR611 (Tested by [aj-way](https://github.com/aj-way). Thank you.)
   * Marantz SR7008 (Tested by [avbohemen](https://github.com/avbohemen). Thank you.)
+  * Marantz NA6005 (Tested by [fmika](https://github.com/fmika). Thank you.)
 - Denon
   * Denon AVR-X1000 (Tested by [badekappe](https://github.com/badekappe). Thank you.)
   * Denon AVR-X1200W (Tested by [landolfi-us](https://github.com/landolfi-us). Thank you.)
