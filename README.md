@@ -69,6 +69,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Marantz M-CR611 (Tested by [aj-way](https://github.com/aj-way). Thank you.)
   * Marantz SR7008 (Tested by [avbohemen](https://github.com/avbohemen). Thank you.)
   * Marantz NA6005 (Tested by [fmika](https://github.com/fmika). Thank you.)
+  * Marantz NA8005 (Tested by [hkato](https://github.com/hkato). Thank you.)
 - Denon
   * Denon AVR-X1000 (Tested by [badekappe](https://github.com/badekappe). Thank you.)
   * Denon AVR-X1200W (Tested by [landolfi-us](https://github.com/landolfi-us). Thank you.)
@@ -91,6 +92,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Pioneer XC-HM81 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
   * Pioneer XC-HM82-K (Tested by [314ns](https://github.com/314ns). Thank you.)
   * Pioneer X-HM72-S (Tested by [NeoXTof](https://github.com/NeoXTof). Thank you.)
+  * Pioneer VSX-830 (Tested by [martinvanw](https://github.com/martinvanw). Thank you.)
   * Pioneer VSX-923 (Tested by [Mr-Playground](https://github.com/Mr-Playground). Thank you.)
   * Pioneer PDX-Z9 (Tested by Freddy / [Freleo](https://github.com/Freleo). Thank you.)
   * Pioneer N-P01-K (Tested by [ManuISEN](https://github.com/ManuISEN). Thank you.)
