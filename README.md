@@ -190,6 +190,7 @@ Due to the use of the very popular SQLite database, YTuner will need to use the 
 Your YTuner machine and AVR(s) have to have internet access. Make sure your firewall is properly configured if necessary.
 ### AVR
 Set all DNS servers on your AVR config to your YTuner machine IP address.
+>Tip: If your AVR has a proxy server configuration panel, disable it. (switch to OFF). Do not try to use the IP address of the YTuner machine as a proxy server in your AVR's configuration panel.
 
 ### Router
 Make sure that your YTuner machine is assigned a static IPv4 address.
