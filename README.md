@@ -121,6 +121,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * T+A Music Player Balanced (Tested by [AlexViridi](https://github.com/AlexViridi). Thank you.)
 - Noxon
   * Noxon iRadio 300 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
+  * NOXON iRadio M110+ (Tested by [LordHelmchen666](https://github.com/LordHelmchen666). Thank you.)
   * Noxon Nova II (Tested by [J1So2](https://github.com/J1So2). Thank you.)
 - ReVox
   * ReVox M51 (Tested by [roland68](https://github.com/roland68). Thank you.)
