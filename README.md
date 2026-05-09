@@ -56,6 +56,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Yamaha RX-V677 (Tested by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
   * Yamaha RX-V773 (Tested by d1vzero / [d1vzero](https://github.com/d1vzero). Thank you.)
   * Yamaha RX-V777 (Confirmed by Jordan / [jordandalley](https://github.com/jordandalley). Thank you.)
+  * Yamaha RX-V473 (Tested by [bbird58138](https://github.com/bbird58138). Thank you.)
   * Yamaha RX-V477 (Tested by [forumgithub010524](https://github.com/forumgithub010524). Thank you.)
   * Yamaha RX-V3900 (Tested by [BeryBurnout](https://github.com/BeryBurnout). Thank you.)
   * Yamaha RX-V500D (Tested by [qsm101](https://github.com/qsm101). Thank you.)
@@ -83,8 +84,10 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon AVR-X2200W (Tested by [I-G-1-1](https://github.com/I-G-1-1). Thank you.)
   * Denon AVR-X3200W (Tested by [Larsvb0](https://github.com/Larsvb0). Thank you.)
   * Denon AVR-X3300W (Tested by [citronalco](https://github.com/citronalco). Thank you.)
+  * Denon AVR-X7200W (Tested by [emk2203](https://github.com/emk2203). Thank you.)
   * Denon AVR-1912 (Tested by [HansJA](https://github.com/HansJA). Thank you.)
   * Denon AVR-2313 (Tested by [Stijn-Daniels](https://github.com/Stijn-Daniels). Thank you.)
+  * Denon AVR-3313CI (Tested by [dlk3](https://github.com/dlk3). Thank you.)
   * Denon AVR-3808CI (Tested by [sydvicous](https://github.com/sydvicous). Thank you.)
   * Denon RCD-N7 (Tested by [breml](https://github.com/breml). Thank you.)
   * Denon RCD-N9 CEOL (Tested by [xaanur](https://github.com/xaanur). Thank you.)
@@ -115,6 +118,8 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Harman Kardon AVR 3770 (Tested by [phasperhoven](https://github.com/phasperhoven). Thank you.)
 - Onkyo
   * Onkyo T-4070 (Tested by [J1So2](https://github.com/J1So2). Thank you.)
+  * Onkyo TX-8050 (Tested by [fleddycoaster](https://github.com/fleddycoaster). Thank you.)
+  * Onkyo TX-NR515 (Tested by [Maciej2](https://github.com/Maciej2). Thank you.)
   * Onkyo TX-NR818 (Tested by [J1So2](https://github.com/J1So2). Thank you.)
   * Onkyo R-N855 (Confirmed by [jpaudioa4](https://github.com/jpaudioa4). Thank you.)
 - Pro-Ject
