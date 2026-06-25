@@ -94,6 +94,7 @@ Now, the list of supported **and tested** devices below is short, but I hope it 
   * Denon RCD-N9 CEOL (Tested by [xaanur](https://github.com/xaanur). Thank you.)
   * Denon S-32 (Tested by [xaanur](https://github.com/xaanur). Thank you.)
   * Denon DNP-F109 (Confirmed by [jpaudioa4](https://github.com/jpaudioa4). Thank you.)
+  * Denon DNP-730AE (Tested by [ThoWa85](https://github.com/ThoWa85). Thank you.)
 - Pioneer
   * Pioneer N-30 (Tested by [stokifan](https://github.com/stokifan). Thank you.)
   * Pioneer N-50 (Tested by [vlad-6502](https://github.com/vlad-6502). Thank you.)
