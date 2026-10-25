@@ -91,6 +91,8 @@ const
   RBCACHE_CATEGORIES_PREFIX = 'RBC-';
 
   HIDE_BROKEN_STATIONS : boolean = True;
+  // Radio-browser.info servers return only 1000 items (api-default-limit) when a list request has no explicit limit.
+  RB_API_MAX_LIMIT = 1000000;
   RB_CATEGORIES_PATH : array[TRBCategoryTypes] of string = ('tags','countries','languages');
   RB_JSON_STRIP_CHARS: array of AnsiString =  ('!','*','''','(',')',';',':','@','&','=','+','$',',','/','?','%','#','[',']','-','_','.','~',#10,#13,#09);
   RB_FILTER_STRIP_CHARS: array of AnsiString =  ('!','"','''','(',')',':','@','&','=','+','$',',','/','?','%','#','[',']','-','.','~',#10,#13,#09);
@@ -171,15 +173,23 @@ begin
   Result:='?'+API_OFFSET_PATH+'='+IntToStr(AElementNumber)+'&'+API_LIMIT_PATH+'='+IntToStr(AElementCount);
 end;
 
+function AddAPIURLLimit(AURL: string): string;
+begin
+  if Pos(API_LIMIT_PATH+'=',AURL)>0 then
+    Result:=AURL
+  else
+    Result:=AURL+IfThen(Pos('?',AURL)>0,'&','?')+API_LIMIT_PATH+'='+IntToStr(RB_API_MAX_LIMIT);
+end;
+
 function RadiobrowserAPIRequest(AURL: string): RawByteString;
 begin
+  AURL:=AddAPIURLLimit(AURL);
   Logging(ltDebug,MSG_RADIOBROWSER+': GET '+AURL);
   with TFPHttpClient.Create(nil) do
   try
     try
       AddHeader(HTTP_HEADER_ACCEPT,HTTP_RESPONSE_CONTENT_TYPE[ctJSON]);
       AddHeader(HTTP_HEADER_USER_AGENT,YTUNER_USER_AGENT+'/'+APP_VERSION);
-      Result:=RemoveEscChars(Get(RBAPIURL+'/json/'+AURL));
       Result:=Get(RBAPIURL+'/json/'+AURL);
     except
       Logging(ltError,MSG_RADIOBROWSER+': '+MSG_ERROR+' '+MSG_GETTING+' '+AURL);
