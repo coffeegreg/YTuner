@@ -1,20 +1,20 @@
-# Retuner
+# Viritin
 
-Your AV receiver has an internet radio button that stopped working. Retuner
+Your AV receiver has an internet radio button that stopped working. Viritin
 answers the service the receiver is still trying to reach, and the button works
 again — the same menus, the same remote, no app.
 
-This add-on runs Retuner on your Home Assistant machine.
+This add-on runs Viritin on your Home Assistant machine.
 
 ## Installation
 
 1. Settings → Add-ons → Add-on store → ⋮ → **Repositories**, and add
-   `https://github.com/ollisulopuisto/retuner`.
-2. Install **Retuner** from the list. The first install compiles the source, so
+   `https://github.com/ollisulopuisto/viritin`.
+2. Install **Viritin** from the list. The first install compiles the source, so
    give it a few minutes — longer on a Raspberry Pi.
 3. Start it, then point the receiver at it (below).
 
-## Pointing the receiver at Retuner
+## Pointing the receiver at Viritin
 
 The receiver has the old service's hostname built into its firmware, so the
 whole job is making that name resolve to this machine. Pick whichever of these
@@ -32,25 +32,25 @@ often already taken** on a Home Assistant machine: if you run the AdGuard Home
 or Pi-hole add-on, one of the two will fail to start, and the one that already
 owns the port is the better place to do the redirect anyway.
 
-Either way, the receiver then finds Retuner where it expected vTuner, and its
+Either way, the receiver then finds Viritin where it expected vTuner, and its
 internet radio menu fills up.
 
 ## The options
 
 **`act_as_host`** — the address the receiver is told to fetch stations and
-artwork from. Leave it blank and Retuner uses this machine's own address, which
+artwork from. Leave it blank and Viritin uses this machine's own address, which
 is right whenever the receiver is on the same network. Set it only when that
 address is not the one the receiver should reach — for example, this machine is
 behind NAT from the receiver's point of view.
 
 **`web_port`** — 80 by default, because the receiver's firmware asks for port 80
-and that is not negotiable from Retuner's side. If something else on this
+and that is not negotiable from Viritin's side. If something else on this
 machine already answers on port 80, the add-on will not start; changing the port
 here only helps if you also have a proxy putting it back on 80. A second address
 on this machine usually does not help either, because a Docker port mapping
 binds every address it has. When port 80 is genuinely spoken for, running
-Retuner on a small machine of its own is the way out —
-[doc/STANDALONE.md](https://github.com/ollisulopuisto/retuner/blob/master/doc/STANDALONE.md)
+Viritin on a small machine of its own is the way out —
+[doc/STANDALONE.md](https://github.com/ollisulopuisto/viritin/blob/master/doc/STANDALONE.md)
 has the whole recipe, including a systemd unit.
 
 **`local_country`** — put your country here (spelled as Radio Browser spells it,
@@ -60,11 +60,11 @@ countries with a jog dial, every time. Blank hides the entry.
 
 **`resolve_playlists`** — on by default here. Many station links are `.m3u` or
 `.pls` files rather than the audio itself, and firmware of this era often cannot
-follow one. With this on, Retuner opens the playlist and hands the receiver the
+follow one. With this on, Viritin opens the playlist and hands the receiver the
 stream inside it. Costs one small fetch when a station is selected.
 
 **`relay_https`** / **`relay_port`** — a growing share of stations are
-HTTPS-only, and these receivers have no TLS at all. With the relay on, Retuner
+HTTPS-only, and these receivers have no TLS at all. With the relay on, Viritin
 fetches such a stream itself and re-serves it unencrypted on the local network.
 The cost is real and worth knowing: a relayed station keeps a connection and a
 thread open on this machine for as long as it plays. Fine on a spare PC, less
@@ -106,7 +106,7 @@ to 8080 in the add-on options if something of yours depends on that.
 **`log_level`** — `normal` is right. `debug` logs every request, including
 station names, and is for working out why something will not play.
 
-**`advanced_ini`** — anything Retuner supports that the options above do not
+**`advanced_ini`** — anything Viritin supports that the options above do not
 cover. Include the `[Section]` header. It is merged into the generated
 configuration rather than tacked on the end, so a setting here overrides the
 same setting from the options above, and a section that already exists is added
@@ -122,7 +122,7 @@ RBAPIURL=http://de1.api.radio-browser.info
 
 ## Where your files live
 
-The add-on's configuration folder (`/addon_configs/…_retuner/` on the host)
+The add-on's configuration folder (`/addon_configs/…_viritin/` on the host)
 holds the things you curate:
 
 - **`stations.ini`** — your own stations, grouped into categories:
@@ -143,7 +143,7 @@ holds the things you curate:
 
   Written with an example the first time podcasts are switched on.
 
-- **`presets/<code>.ini`** — the country lists Retuner fetched, one file per
+- **`presets/<code>.ini`** — the country lists Viritin fetched, one file per
   country you enabled. These are **downloaded, not yours**: they are replaced
   whenever a fetch succeeds, so edit `stations.ini` instead if you want a change
   to stick. They are kept so a failed fetch still leaves you with a menu.
@@ -154,7 +154,7 @@ holds the things you curate:
 
 - **`<mac>.xml` / `bookmark.xml`** — bookmarks saved from the remote.
 
-`retuner.ini` is **generated from the options above every time the add-on
+`viritin.ini` is **generated from the options above every time the add-on
 starts**, so editing it does nothing. Change the options instead, or use
 `advanced_ini`.
 
@@ -163,14 +163,14 @@ thrown away safely; they rebuild themselves.
 
 ## Frontier Silicon table radios
 
-Retuner is not only for AV receivers. Frontier Silicon chipsets — Hama, Medion,
+Viritin is not only for AV receivers. Frontier Silicon chipsets — Hama, Medion,
 Technisat, Teufel, Roberts, Pure, Sangean, Auna, Karcher and others — used vTuner
 as their station directory until Frontier dropped it in May 2019. They speak the
-same protocol on a slightly deeper URL, and Retuner answers it.
+same protocol on a slightly deeper URL, and Viritin answers it.
 
 Setup is the same as for a receiver, with one different hostname: point
 `*.wifiradiofrontier.com` at this machine instead of `*.vtuner.com`. If you use
-Retuner's own DNS service, that name is already in its intercept list.
+Viritin's own DNS service, that name is already in its intercept list.
 
 `*.frontier-nuvola.net` is deliberately left alone. Nuvola shut down on
 31 October 2024, but it was handed over to airable rather than switched off, so
@@ -183,7 +183,7 @@ This is tested at the protocol level but **not yet confirmed on real hardware**.
 ## Country presets
 
 Turn on **Country presets** and set **Preset countries** to one or more
-two-letter codes (`fi`, or `fi,se`). On start, Retuner fetches a curated list
+two-letter codes (`fi`, or `fi,se`). On start, Viritin fetches a curated list
 for each and merges it into **My stations**, so the receiver has something worth
 playing before you have written a station file.
 
@@ -193,7 +193,7 @@ added twice. A preset can never overwrite anything of yours.
 
 If a fetch fails, the copy from last time is used and the log says so — the
 failure names the URL and the reason. Which lists exist, and how to contribute
-one, is in the `presets/` folder of the Retuner repository.
+one, is in the `presets/` folder of the Viritin repository.
 
 ## Security
 
@@ -227,6 +227,6 @@ receivers cannot do TLS at all. This is the usual reason podcast episodes list
 but will not play.
 
 **A whole category is empty.** Check the filters in `avr.ini`. The examples in
-Retuner's own `cfg/avr.ini` include a demonstration tag filter that hides almost
+Viritin's own `cfg/avr.ini` include a demonstration tag filter that hides almost
 everything — this add-on deliberately does not copy that file for exactly that
 reason, but if you pasted from it, that is the likely cause.

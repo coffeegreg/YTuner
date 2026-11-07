@@ -18,7 +18,7 @@ func TestHandleLoginXML(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", rr.Code)
 	}
 
-	expected := xml.Header + `<ListOfItems><ItemCount>1</ItemCount><Item><ItemType>Dir</ItemType><Title>My Stations</Title><UrlDir>http:///retuner/mystations?retuner=true</UrlDir><UrlDirBackUp>http:///retuner/mystations?retuner=true</UrlDirBackUp><DirCount>0</DirCount></Item></ListOfItems>`
+	expected := xml.Header + `<ListOfItems><ItemCount>1</ItemCount><Item><ItemType>Dir</ItemType><Title>My Stations</Title><UrlDir>http:///viritin/mystations?viritin=true</UrlDir><UrlDirBackUp>http:///viritin/mystations?viritin=true</UrlDirBackUp><DirCount>0</DirCount></Item></ListOfItems>`
 	if rr.Body.String() != expected {
 		t.Errorf("Expected body %s, got %s", expected, rr.Body.String())
 	}

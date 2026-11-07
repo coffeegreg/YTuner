@@ -38,6 +38,7 @@ function SubstHost(const AValue, AHost: string): string;
 begin
   Result:=StringReplace(AValue,BOOKMARK_HOST,AHost,[rfIgnoreCase]);
   Result:=StringReplace(Result,BOOKMARK_HOST_LEGACY,AHost,[rfIgnoreCase]);
+  Result:=StringReplace(Result,BOOKMARK_HOST_LEGACY_YTUNER,AHost,[rfIgnoreCase]);
 end;
 
 function GetBookmarkFileName(AMAC: string): string;

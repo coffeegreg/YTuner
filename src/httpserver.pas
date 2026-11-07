@@ -64,11 +64,12 @@ const
   PATH_FAVXML_ASP = 'favxml.asp';
   PATH_NAVXML_ASP = 'navxml.asp';
   PATH_SEARCH_ASP = 'search.asp';
-  PATH_ROOT = 'retuner';
-// Bookmarks an AVR saved before the rename contain absolute /ytuner/ URLs, and
-// the receiver replays them verbatim. Every root route is therefore registered
-// under this prefix as well -- see RegisterRootRoutes. Served, never generated.
-  PATH_ROOT_LEGACY = 'ytuner';
+  PATH_ROOT = 'viritin';
+// Bookmarks an AVR saved before the renames contain absolute /retuner/ or /ytuner/ URLs,
+// and the receiver replays them verbatim. Every root route is therefore registered
+// under these prefixes as well -- see RegisterRootRoutes. Served, never generated.
+  PATH_ROOT_LEGACY = 'retuner';
+  PATH_ROOT_LEGACY_YTUNER = 'ytuner';
   PATH_PLAY = 'play';
   PATH_STATION = 'station';
   PATH_SEARCH = 'search';
@@ -188,6 +189,7 @@ begin
   HTTPRouter.RegisterRoute('/'+PATH_SETUPAPP+'/'+PATH_FAVXML_ASP, @BookmarkService, false);
   RegisterRootRoutes(PATH_ROOT);
   RegisterRootRoutes(PATH_ROOT_LEGACY);
+  RegisterRootRoutes(PATH_ROOT_LEGACY_YTUNER);
 
 // This endpoint is for redirect for vTuner radio station link
   HTTPRouter.RegisterRoute('/'+PATH_SETUPAPP+'/*/'+PATH_VTUNER_ASP, @VTunerRedirect, false);

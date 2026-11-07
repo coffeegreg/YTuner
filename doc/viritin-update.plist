@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>io.github.ollisulopuisto.retuner.update</string>
+  <string>io.github.ollisulopuisto.viritin.update</string>
 
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/retuner/retuner-update.sh</string>
+    <string>/usr/local/viritin/viritin-update.sh</string>
   </array>
 
   <!-- Once a day, well away from any hour somebody is likely to be listening.
@@ -25,8 +25,8 @@
   <false/>
 
   <key>StandardOutPath</key>
-  <string>/usr/local/retuner/update.log</string>
+  <string>/usr/local/viritin/update.log</string>
   <key>StandardErrorPath</key>
-  <string>/usr/local/retuner/update.log</string>
+  <string>/usr/local/viritin/update.log</string>
 </dict>
 </plist>

@@ -1,7 +1,7 @@
 # Other dead portals
 
 vTuner is not the only station directory that was switched off with the hardware
-still working. This page is a survey of the others: which ones Retuner's
+still working. This page is a survey of the others: which ones Viritin's
 architecture could serve, which are already served by somebody else, and which
 are dead ends and why.
 
@@ -9,7 +9,7 @@ are dead ends and why.
 announcements, vendor support pages, and the source of the community projects
 that exist. No device was in hand and no traffic was captured for any portal
 below. Where a protocol detail is claimed it comes from someone else's capture,
-and it is attributed. Nothing here has been tested against Retuner.
+and it is attributed. Nothing here has been tested against Viritin.
 
 ## What decides whether a portal can be replaced
 
@@ -43,7 +43,7 @@ free content, hardware that still powers on: the same shape as vTuner.
 Two community efforts exist, and they went opposite ways.
 
 [`felixalacampagne/recivaportal`](https://github.com/felixalacampagne/recivaportal)
-tried what Retuner does — DNS redirection to a local HTTP server, no firmware
+tried what Viritin does — DNS redirection to a local HTTP server, no firmware
 changes. It got the radio talking: plain HTTP, a `HEAD` to
 `portal15.7803986842.com/portal/challenge?serial=…` redirecting to reciva.com,
 then `GET /portal-newformat`. Then it hit a POST carrying 256-byte encrypted
@@ -61,7 +61,7 @@ will attempt for a kitchen radio.
 pure-server approach died from an unsolved handshake, not from a proof that it
 is unsolvable, and the firmware images the keys live in are widely mirrored.
 Worth a time-boxed spike on the challenge/response before any commitment. If it
-opens, it is a second protocol handler onto everything Retuner already does.
+opens, it is a second protocol handler onto everything Viritin already does.
 
 ### Frontier radios orphaned by the airable handover
 
@@ -117,7 +117,7 @@ months, not years.
 February 2024 and it barely registered, because
 [Lyrion Music Server](https://lyrion.org) — the same codebase as SlimServer, and
 open since the early 2000s — was already there. Established first, the
-replacement is uneventful. This is what Retuner is trying to become for vTuner.
+replacement is uneventful. This is what Viritin is trying to become for vTuner.
 
 **Slingbox** is the cautionary tale. Dish
 [modified the firmware specifically to frustrate community replacement
@@ -134,7 +134,7 @@ it has to be extracted **before** the service goes off, not after.
    about Reciva is favourable; that one answer decides it.
 3. **Pure Flow**, if a device turns up.
 
-The argument for doing any of this inside Retuner rather than as new projects is
+The argument for doing any of this inside Viritin rather than as new projects is
 that the expensive parts are built and tested: Radio Browser, the caches, icon
 conversion, the HTTPS relay, playlist unwrapping, DNS interception, and the Home
 Assistant packaging. Another dead portal is a front end onto all of it.

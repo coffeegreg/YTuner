@@ -1,7 +1,7 @@
-# Building a Retuner appliance
+# Building a Viritin appliance
 
 One box, Ethernet to the router, that answers vTuner for every receiver on the
-network. It runs two things: Retuner on port 80, and a resolver on port 53 that
+network. It runs two things: Viritin on port 80, and a resolver on port 53 that
 rewrites the vTuner domains to itself and forwards everything else.
 
 Nothing here is a new component. It is the standalone Linux install from
@@ -12,7 +12,7 @@ on hardware small enough to leave behind a cabinet.
 
 | | why |
 |---|---|
-| **Serve HTTP on port 80** | Receivers ask for port 80 and Retuner advertises every station URL without a port. Not negotiable — see the note in `retuner.service`. |
+| **Serve HTTP on port 80** | Receivers ask for port 80 and Viritin advertises every station URL without a port. Not negotiable — see the note in `viritin.service`. |
 | **Answer DNS on port 53** | The receiver has to be told `radiodenon.com` is this box. |
 | **Forward all other DNS** | Once the receiver points here for DNS, *every* lookup it makes comes here, stream hostnames included. Get this wrong and the radio stops. |
 | **Hold one address for ever** | The receiver stores the DNS server as a number. If the box's address changes, the receiver silently stops working. |
@@ -46,7 +46,7 @@ constantly and SD cards die of exactly that.
 
 ### Measure it first
 
-Do not take a memory figure on faith, this document's included. Retuner's
+Do not take a memory figure on faith, this document's included. Viritin's
 footprint depends on how many stations your country lists and which cache type
 you set. Ask the install you already have:
 
@@ -61,12 +61,12 @@ buy a board with room to spare.
 ## Headroom for other things
 
 The usual question is whether a box like this can also be the Spotify endpoint,
-or run something else small beside Retuner. Roughly, and these are estimates
+or run something else small beside Viritin. Roughly, and these are estimates
 rather than measurements — do the `ps -o rss=` check above once it is running:
 
 | | RAM | CPU |
 |---|---|---|
-| Retuner | tens of MB, more once a big country is cached | idle between requests |
+| Viritin | tens of MB, more once a big country is cached | idle between requests |
 | librespot / spotifyd, one stream | tens of MB | a few percent of one core |
 | Re-encoding that stream to MP3 for a receiver | small | under a tenth of a core |
 | dnsmasq | a few MB | nothing |
@@ -95,8 +95,8 @@ radio buffer.
 ### 1. The system
 
 Debian stable or Raspberry Pi OS Lite (64-bit), no desktop. Then follow
-[STANDALONE.md](STANDALONE.md) for Retuner itself: the `retuner` user,
-`/opt/retuner`, and `retuner.service` — which already grants
+[STANDALONE.md](STANDALONE.md) for Viritin itself: the `retuner` user,
+`/opt/viritin`, and `viritin.service` — which already grants
 `CAP_NET_BIND_SERVICE`, so port 80 does not need root.
 
 Take the binary from a release rather than building it, which is the whole point
@@ -107,7 +107,7 @@ of an appliance you set up once:
 | x86 thin client, mini PC | `retuner-<version>-x86_64-linux.tar.gz` |
 | Raspberry Pi 4/5, 64-bit OS | `retuner-<version>-aarch64-linux.tar.gz` |
 
-Unpack it, copy `retuner` to `/opt/retuner/`, and take `retuner.ini` and
+Unpack it, copy `retuner` to `/opt/viritin/`, and take `viritin.ini` and
 `config/avr.ini` from it **only on a first install** — on an existing box they
 are yours and the updater deliberately leaves them alone.
 
@@ -128,16 +128,16 @@ sudo nmcli con up "Wired connection 1"
 `ipv4.dns 127.0.0.1` points the box at its own dnsmasq, so it resolves the same
 way the receiver will and you find breakage yourself first.
 
-### 3. DNS, with dnsmasq and not with Retuner's own
+### 3. DNS, with dnsmasq and not with Viritin's own
 
-Retuner has a built-in DNS server. **Do not use it here.** Turn it off:
+Viritin has a built-in DNS server. **Do not use it here.** Turn it off:
 
 ```ini
 [DNSServer]
 Enable=0
 ```
 
-The reason is measured, not stylistic. Retuner's DNS server is Indy's, which
+The reason is measured, not stylistic. Viritin's DNS server is Indy's, which
 resolves upstream *on the thread that answers queries*, with a five second wait
 per entry in its server list and no concurrency. Two upstreams that do not
 answer is ten seconds during which the service answers nothing at all —
@@ -177,7 +177,7 @@ listen-address=127.0.0.1,192.168.10.2
 bind-interfaces
 ```
 
-Keep that list in step with `InterceptDNs` in `cfg/retuner.ini`; they are the
+Keep that list in step with `InterceptDNs` in `cfg/viritin.ini`; they are the
 same set and drifting apart is how a manufacturer quietly stops working.
 
 `frontier-nuvola.net` is deliberately absent — but not because it is still
@@ -188,15 +188,15 @@ would break hardware that works today. If your brand was dropped in that
 handover, adding the name by hand is exactly the case for it. See
 [OTHER-PORTALS.md](OTHER-PORTALS.md).
 
-### 4. Tell Retuner where it lives
+### 4. Tell Viritin where it lives
 
-In `/opt/retuner/retuner.ini`:
+In `/opt/viritin/viritin.ini`:
 
 ```ini
 ActAsHost=192.168.10.2
 ```
 
-This is the setting that will bite you. Retuner builds every station URL as
+This is the setting that will bite you. Viritin builds every station URL as
 `http://<ActAsHost><path>`, so if it is wrong the menu appears and every station
 in it fails. [MACOS.md](MACOS.md) has the longer version.
 
@@ -215,10 +215,10 @@ which is a bigger promise than it first sounds.
 ### 6. Updates
 
 ```sh
-sudo cp script/retuner-update.sh /opt/retuner/
-sudo chmod +x /opt/retuner/retuner-update.sh
-sudo cp doc/retuner-update.service doc/retuner-update.timer /etc/systemd/system/
-sudo systemctl enable --now retuner-update.timer
+sudo cp script/viritin-update.sh /opt/viritin/
+sudo chmod +x /opt/viritin/viritin-update.sh
+sudo cp doc/viritin-update.service doc/viritin-update.timer /etc/systemd/system/
+sudo systemctl enable --now viritin-update.timer
 ```
 
 It replaces only the binary, proves a download serves before installing it, and
@@ -231,7 +231,7 @@ script is the same one.
 Run these on the box, then from another machine, then let the receiver try.
 
 ```sh
-# 1. Retuner is up and serving the endpoint a receiver hits first
+# 1. Viritin is up and serving the endpoint a receiver hits first
 curl -sI "http://192.168.10.2/setupapp/x/loginxml.asp?token=0"
 
 # 2. What it advertises - these must be the appliance's address, and portless
@@ -247,7 +247,7 @@ nslookup github.com 192.168.10.2
 ```
 
 Then the receiver's Internet Radio button. `New AVR connected (<mac>)` in
-`/opt/retuner/retuner.log` means it arrived.
+`/opt/viritin/viritin.log` means it arrived.
 
 If step 4 is the one that fails, nothing about internet radio will look wrong
 until a station will not play.
@@ -267,7 +267,7 @@ experience.** That is the trade for not touching the router. `Restart=on-failure
 in the unit covers a crash; nothing covers the box being unplugged.
 
 **SD card wear.** Set `MessageInfoLevel` no higher than it needs to be, and let
-logrotate have `/opt/retuner/retuner.log`. Debug logging on an SD card is a
+logrotate have `/opt/viritin/viritin.log`. Debug logging on an SD card is a
 countdown.
 
 ## What this is not

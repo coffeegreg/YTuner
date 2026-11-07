@@ -1,8 +1,8 @@
-name: Retuner
-version: "26.08.28.4"
-slug: retuner
+name: Viritin
+version: "26.11.07.287"
+slug: viritin
 description: Brings internet radio back to AV receivers whose vTuner service was shut down
-url: "https://github.com/ollisulopuisto/retuner/tree/master/retuner"
+url: "https://github.com/ollisulopuisto/viritin/tree/master/viritin"
 arch:
   - aarch64
   - amd64

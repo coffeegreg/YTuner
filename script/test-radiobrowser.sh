@@ -14,7 +14,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN=${1:-}
 if [ -z "$BIN" ]; then
   # shellcheck disable=SC2012  # one glob under bin/, named by the target triple
-  BIN=$(ls "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
+  BIN=$(ls "$ROOT"/bin/*/viritin 2>/dev/null | head -1) \
     || { echo "error: no binary found; run script/build.sh first" >&2; exit 1; }
 fi
 [ -x "$BIN" ] || { echo "error: $BIN is not executable" >&2; exit 1; }
@@ -42,7 +42,7 @@ fail=0
 ok()   { echo "  ok   $1"; }
 bad()  { echo "  FAIL $1"; fail=1; }
 
-cp "$BIN" "$WORK/retuner"
+cp "$BIN" "$WORK/viritin"
 
 start_rb() {
   # Per-phase request log. Sharing one file across phases would let an earlier
@@ -97,7 +97,7 @@ stop_rb() {
 MAC=aabbccddee
 write_config() {
   mkdir -p "$WORK/config"
-  cat > "$WORK/retuner.ini" <<INI
+  cat > "$WORK/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=4
@@ -143,7 +143,7 @@ INI
 }
 
 start_server() {
-  ( cd "$WORK" && exec ./retuner -p "$PORT" > "$1" 2>&1 ) &
+  ( cd "$WORK" && exec ./viritin -p "$PORT" > "$1" 2>&1 ) &
   PID=$!
   i=0
   while [ "$i" -lt 60 ]; do
@@ -166,7 +166,7 @@ stop_server() {
 
 stations() {
   curl -fsS --noproxy '*' \
-    "http://127.0.0.1:$PORT/retuner/radiobrowser/country/Testland?mac=$MAC" 2>/dev/null || true
+    "http://127.0.0.1:$PORT/viritin/radiobrowser/country/Testland?mac=$MAC" 2>/dev/null || true
 }
 
 has() {
@@ -297,8 +297,8 @@ stop_server; stop_rb
 echo "- with CommonAVRini off, config/<mac>.ini is"
 next_ports; start_rb ok; write_config "" "" ""
 awk '/^\[Configuration\]/ { print; print "CommonAVRini=0"; next } { print }' \
-  "$WORK/retuner.ini" > "$WORK/retuner.ini.new"
-mv "$WORK/retuner.ini.new" "$WORK/retuner.ini"
+  "$WORK/viritin.ini" > "$WORK/viritin.ini.new"
+mv "$WORK/viritin.ini.new" "$WORK/viritin.ini"
 write_avr_ini "$WORK/config/$MAC.ini" 192
 start_server "$WORK/run8.log"
 S=$(stations)
@@ -321,7 +321,7 @@ echo "- search asks upstream for the most-voted stations first"
 next_ports; start_rb ok; write_config "" "" ""
 start_server "$WORK/run-searchorder.log"
 curl -fsS --noproxy '*' -o /dev/null \
-  "http://127.0.0.1:$PORT/retuner/search?search=yle&mac=$MAC" 2>/dev/null || true
+  "http://127.0.0.1:$PORT/viritin/search?search=yle&mac=$MAC" 2>/dev/null || true
 Q=$(grep '/json/stations/search' "$RB_LOG" 2>/dev/null || true)
 has   "search reaches radio-browser at all"      "$Q" "name=yle"
 has   "ordered by votes, not alphabetically"     "$Q" "order=votes"

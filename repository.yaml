@@ -1,5 +1,5 @@
 # Makes this repository installable as a Home Assistant add-on repository.
 # Settings > Add-ons > Add-on store > ... > Repositories > add this repo's URL.
-name: Retuner
-url: 'https://github.com/ollisulopuisto/retuner'
+name: Viritin
+url: 'https://github.com/ollisulopuisto/viritin'
 maintainer: ollisulopuisto <olli.sulopuisto@gmail.com>

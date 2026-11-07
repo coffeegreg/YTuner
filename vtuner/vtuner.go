@@ -114,9 +114,13 @@ func (p *Page) ToXMLString() (string, error) {
 	return xml.Header + string(bytes), nil
 }
 
-func AddRetunerParameter(url string) string {
+func AddViritinParameter(url string) string {
 	if strings.Contains(url, "?") {
-		return url + "&retuner=true"
+		return url + "&viritin=true"
 	}
-	return url + "?retuner=true"
+	return url + "?viritin=true"
+}
+
+func AddRetunerParameter(url string) string {
+	return AddViritinParameter(url)
 }

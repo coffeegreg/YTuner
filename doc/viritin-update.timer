@@ -1,6 +1,6 @@
 [Unit]
-Description=Check for a new Retuner release daily
-Documentation=https://github.com/ollisulopuisto/retuner/blob/master/doc/APPLIANCE.md
+Description=Check for a new Viritin release daily
+Documentation=https://github.com/ollisulopuisto/viritin/blob/master/doc/APPLIANCE.md
 
 [Timer]
 OnCalendar=*-*-* 04:30:00

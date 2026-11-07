@@ -13,7 +13,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN=${1:-}
 if [ -z "$BIN" ]; then
   # shellcheck disable=SC2012  # one glob under bin/, named by the target triple
-  BIN=$(ls "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
+  BIN=$(ls "$ROOT"/bin/*/viritin 2>/dev/null | head -1) \
     || { echo "error: no binary found; run script/build.sh first" >&2; exit 1; }
 fi
 [ -x "$BIN" ] || { echo "error: $BIN is not executable" >&2; exit 1; }
@@ -41,7 +41,7 @@ say_ok()   { echo "  ok   $1"; }
 say_fail() { echo "  FAIL $1"; fail=1; }
 
 mkdir -p "$WORK/repo"
-cp "$BIN" "$WORK/retuner"
+cp "$BIN" "$WORK/viritin"
 
 # The stand-in repository. One of its categories collides with a category in
 # the user own file, so the merge is actually exercised.
@@ -79,7 +79,7 @@ stop_repo() {
   fi
 }
 
-cat > "$WORK/retuner.ini" <<INI
+cat > "$WORK/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=4
@@ -113,7 +113,7 @@ User Side=http://127.0.0.1:1/user.mp3
 INI
 
 start_server() {
-  ( cd "$WORK" && exec ./retuner -p "$PORT" > "$1" 2>&1 ) &
+  ( cd "$WORK" && exec ./viritin -p "$PORT" > "$1" 2>&1 ) &
   PID=$!
   i=0
   while [ "$i" -lt 50 ]; do
@@ -160,7 +160,7 @@ echo "Testing presets with $BIN"
 echo "- a reachable repository"
 start_repo
 start_server "$WORK/run1.log"
-CATS=$(body "/retuner/mystations?mac=aabbccddee")
+CATS=$(body "/viritin/mystations?mac=aabbccddee")
 has "the preset category is served"          "$CATS" "National"
 has "the user own category survives"         "$CATS" "Mine Only"
 has "a category present in both appears"     "$CATS" "Shared Category"
@@ -169,9 +169,9 @@ if [ "$(printf '%s' "$CATS" | grep -c 'Shared Category')" = "1" ]; then
 else
   say_fail "the shared category is not duplicated"
 fi
-NAT=$(body "/retuner/mystations/National?mac=aabbccddee")
+NAT=$(body "/viritin/mystations/National?mac=aabbccddee")
 has "a preset station is listed"             "$NAT" "Test National One"
-SHARED=$(body "/retuner/mystations/Shared%20Category?mac=aabbccddee")
+SHARED=$(body "/viritin/mystations/Shared%20Category?mac=aabbccddee")
 has "the merged category keeps the user one" "$SHARED" "User Side"
 has "the merged category gains the preset"   "$SHARED" "Preset Side"
 if [ -f "$WORK/config/presets/fi.ini" ]; then
@@ -184,7 +184,7 @@ stop_server
 echo "- an unreachable repository"
 stop_repo
 start_server "$WORK/run2.log"
-CATS=$(body "/retuner/mystations?mac=aabbccddee")
+CATS=$(body "/viritin/mystations?mac=aabbccddee")
 has "the cached list is still served"        "$CATS" "National"
 has "the failure names the URL"              "$(cat "$WORK/run2.log")" "127.0.0.1:$REPO_PORT/fi.ini"
 stop_server
@@ -193,7 +193,7 @@ echo "- a repository serving something that is not a station list"
 printf '<!doctype html><html><body>404 Not Found</body></html>' > "$WORK/repo/fi.ini"
 start_repo
 start_server "$WORK/run3.log"
-CATS=$(body "/retuner/mystations?mac=aabbccddee")
+CATS=$(body "/viritin/mystations?mac=aabbccddee")
 has  "the good cached list is kept"          "$CATS" "National"
 has  "the rejection is logged"               "$(cat "$WORK/run3.log")" "not a station list"
 hasnt "the markup is not served"             "$CATS" "doctype"
@@ -205,7 +205,7 @@ cp "$WORK/repo/fi.ini.good" "$WORK/repo/fi.ini"
 # -i.bak rather than -i: BSD sed reads the argument after -i as the backup
 # suffix, so the bare form consumes the script and then tries to run the file
 # name as one. That is one of the reasons this suite has never passed on macOS.
-sed -i.bak 's|^PresetsCountries=fi$|PresetsCountries=../../etc,fi|' "$WORK/retuner.ini"
+sed -i.bak 's|^PresetsCountries=fi$|PresetsCountries=../../etc,fi|' "$WORK/viritin.ini"
 start_server "$WORK/run4.log"
 has "the bad code is refused by name"        "$(cat "$WORK/run4.log")" "two-letter code"
 if [ -e "$WORK/config/presets/../../etc.ini" ] || [ -e "$WORK/etc.ini" ]; then

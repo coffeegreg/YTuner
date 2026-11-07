@@ -1,10 +1,10 @@
-# Home Assistant Add-on: Retuner
+# Home Assistant Add-on: Viritin
 
 Brings the internet radio button back to life on AV receivers whose vTuner
 service was shut down — Yamaha, Denon, Onkyo, Marantz, Pioneer, Harman Kardon
 and others of that generation.
 
-Retuner answers the service the receiver is still trying to reach, so browsing
+Viritin answers the service the receiver is still trying to reach, so browsing
 and playback happen where they always did: on the receiver's own display, with
 its own remote. No app, no second box.
 

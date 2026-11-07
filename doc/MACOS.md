@@ -1,4 +1,4 @@
-# Retuner on macOS
+# Viritin on macOS
 
 If you already have a Mac that stays on and sits on the same network as the
 receiver, it can serve the radio itself: no virtual machine, no second address,
@@ -31,7 +31,7 @@ You need FPC 3.2.2, the LazUtils sources, `git` and `zip`.
 * **git and zip** come with the Xcode command line tools: `xcode-select --install`.
 
 ```sh
-git clone https://github.com/ollisulopuisto/retuner ~/retuner
+git clone https://github.com/ollisulopuisto/viritin ~/retuner
 cd ~/retuner && ./script/build.sh          # -> bin/aarch64-darwin/retuner
 ```
 
@@ -41,16 +41,16 @@ Apple's no longer takes it. Run `strip` yourself if the few megabytes matter.
 ## Install it
 
 ```sh
-sudo mkdir -p /usr/local/retuner/config /usr/local/retuner/cache
-sudo cp bin/aarch64-darwin/retuner cfg/retuner.ini /usr/local/retuner/
-sudo cp cfg/avr.ini /usr/local/retuner/config/
+sudo mkdir -p /usr/local/viritin/config /usr/local/viritin/cache
+sudo cp bin/aarch64-darwin/retuner cfg/viritin.ini /usr/local/viritin/
+sudo cp cfg/avr.ini /usr/local/viritin/config/
 ```
 
-Then edit `/usr/local/retuner/retuner.ini`.
+Then edit `/usr/local/viritin/viritin.ini`.
 
 ## The setting that will bite you here: ActAsHost
 
-Retuner tells the receiver where to fetch stations and artwork, and `default`
+Viritin tells the receiver where to fetch stations and artwork, and `default`
 means "an address of this machine" — chosen by walking the interface list. A Mac
 running VMware Fusion or Docker has several: `vmnet1`, `vmnet8`, bridge
 interfaces, each with an address that is real, private, and useless to a
@@ -83,20 +83,20 @@ receiver cannot reach, nothing else you do will help.
 
 ## Run it
 
-`doc/retuner.plist` is a launchd daemon for the layout above.
+`doc/viritin.plist` is a launchd daemon for the layout above.
 
 ```sh
-sudo cp doc/retuner.plist /Library/LaunchDaemons/io.github.ollisulopuisto.retuner.plist
-sudo launchctl bootstrap system /Library/LaunchDaemons/io.github.ollisulopuisto.retuner.plist
-tail -f /usr/local/retuner/retuner.log
+sudo cp doc/viritin.plist /Library/LaunchDaemons/io.github.ollisulopuisto.viritin.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/io.github.ollisulopuisto.viritin.plist
+tail -f /usr/local/viritin/viritin.log
 ```
 
-`launchctl print system/io.github.ollisulopuisto.retuner` shows its state, and
-`sudo launchctl kickstart -k system/io.github.ollisulopuisto.retuner` restarts it.
+`launchctl print system/io.github.ollisulopuisto.viritin` shows its state, and
+`sudo launchctl kickstart -k system/io.github.ollisulopuisto.viritin` restarts it.
 
 **It runs as root**, because a daemon in `/Library/LaunchDaemons` does and
 because port 80 is not negotiable — the receiver's firmware asks for it and
-Retuner advertises URLs without a port. That is more privilege than this program
+Viritin advertises URLs without a port. That is more privilege than this program
 wants, and macOS offers nothing like the confinement the systemd unit in
 `doc/STANDALONE.md` gets. If that bothers you — and it reasonably might, given
 that station logos are files chosen by strangers and decoded in this process —
@@ -104,7 +104,7 @@ add a `UserName` key to the plist, set `WebServerPort=8080`, and redirect 80 to
 8080 with a `pf` anchor. That is more moving parts and a rule that has to survive
 a reboot, so it is a deliberate choice rather than the default here.
 
-## Two macOS things that will look like Retuner bugs
+## Two macOS things that will look like Viritin bugs
 
 **The firewall.** If macOS's firewall is on, the first incoming connection
 prompts, and a daemon has nobody to answer the prompt. Allow the binary in
@@ -120,25 +120,25 @@ By hand, from a source checkout:
 
 ```sh
 cd ~/retuner && git pull && ./script/build.sh
-sudo cp bin/aarch64-darwin/retuner /usr/local/retuner/retuner
-sudo launchctl kickstart -k system/io.github.ollisulopuisto.retuner
+sudo cp bin/aarch64-darwin/retuner /usr/local/viritin/viritin
+sudo launchctl kickstart -k system/io.github.ollisulopuisto.viritin
 ```
 
 ### Updating itself
 
-`script/retuner-update.sh` takes the latest release straight from GitHub, so a
+`script/viritin-update.sh` takes the latest release straight from GitHub, so a
 machine you visit twice a year does not sit on the version it was installed
 with. Install it alongside the binary:
 
 ```sh
-sudo cp script/retuner-update.sh /usr/local/retuner/
-sudo chmod +x /usr/local/retuner/retuner-update.sh
-echo 26.08.27.4 | sudo tee /usr/local/retuner/.version   # the version you have now
-sudo cp doc/retuner-update.plist /Library/LaunchDaemons/
-sudo chown root:wheel /Library/LaunchDaemons/io.github.ollisulopuisto.retuner.update.plist
-sudo chmod 644 /Library/LaunchDaemons/io.github.ollisulopuisto.retuner.update.plist
+sudo cp script/viritin-update.sh /usr/local/viritin/
+sudo chmod +x /usr/local/viritin/viritin-update.sh
+echo 26.08.27.4 | sudo tee /usr/local/viritin/.version   # the version you have now
+sudo cp doc/viritin-update.plist /Library/LaunchDaemons/
+sudo chown root:wheel /Library/LaunchDaemons/io.github.ollisulopuisto.viritin.update.plist
+sudo chmod 644 /Library/LaunchDaemons/io.github.ollisulopuisto.viritin.update.plist
 sudo launchctl bootstrap system \
-  /Library/LaunchDaemons/io.github.ollisulopuisto.retuner.update.plist
+  /Library/LaunchDaemons/io.github.ollisulopuisto.viritin.update.plist
 ```
 
 The `.version` line is only to save a pointless first run: with no stamp the
@@ -147,12 +147,12 @@ updater treats the install as unknown and reinstalls the current release once.
 See what it would do, without doing it:
 
 ```sh
-sudo /usr/local/retuner/retuner-update.sh --check
+sudo /usr/local/viritin/viritin-update.sh --check
 ```
 
 What it will and will not touch:
 
-- **Only the binary is replaced.** `retuner.ini` and everything under `config/`
+- **Only the binary is replaced.** `viritin.ini` and everything under `config/`
   are yours. The release archive carries its own copies of both, and putting
   those over an install is how a routine update would revert your filters,
   stations and podcasts to the shipped defaults without saying anything.
@@ -170,13 +170,13 @@ What it will and will not touch:
   GitHub — a missing file should not mean a machine can never update again.
   `sha256 verified` in the log is how you know the comparison actually ran.
 
-`/usr/local/retuner/update.log` records every run, including the ones that found
+`/usr/local/viritin/update.log` records every run, including the ones that found
 nothing to do.
 
 ## Checking it works, in an order that localises a failure
 
 ```sh
-curl -I http://<the mac>/setupapp/x/loginxml.asp?token=0     # Retuner on port 80
+curl -I http://<the mac>/setupapp/x/loginxml.asp?token=0     # Viritin on port 80
 curl -s "http://<the mac>/setupapp/x/loginxml.asp?mac=aabbccddee" \
   | grep -o 'http://[^<]*' | head                            # what it advertises
 dig radioyamaha.vtuner.com @<your resolver>                  # the DNS override

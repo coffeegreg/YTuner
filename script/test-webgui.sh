@@ -13,7 +13,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN=${1:-}
 if [ -z "$BIN" ]; then
   # shellcheck disable=SC2012  # one glob under bin/, named by the target triple
-  BIN=$(ls "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
+  BIN=$(ls "$ROOT"/bin/*/viritin 2>/dev/null | head -1) \
     || { echo "error: no binary found; run script/build.sh first" >&2; exit 1; }
 fi
 [ -x "$BIN" ] || { echo "error: $BIN is not executable" >&2; exit 1; }
@@ -32,13 +32,13 @@ fail=0
 ok()  { echo "  ok   $1"; }
 bad() { echo "  FAIL $1"; fail=1; }
 
-cp "$BIN" "$WORK/retuner"
+cp "$BIN" "$WORK/viritin"
 mkdir -p "$WORK/config"
 printf '[Test]\nA Station=http://example.com/a.mp3\n' > "$WORK/config/stations.ini"
 
 # $1 = WebGUIIPAddress, $2 = WebGUIPassword
 write_config() {
-  cat > "$WORK/retuner.ini" <<INI
+  cat > "$WORK/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=4
@@ -62,7 +62,7 @@ INI
 }
 
 start_server() {
-  ( cd "$WORK" && exec ./retuner -p "$PORT" > "$1" 2>&1 ) &
+  ( cd "$WORK" && exec ./viritin -p "$PORT" > "$1" 2>&1 ) &
   PID=$!
   i=0
   while [ "$i" -lt 60 ]; do
@@ -159,7 +159,7 @@ is "a list is accepted, spaces and all" 200 "http://127.0.0.1:$GUI_PORT/" -u 'ad
 stop_server
 
 # The old single-address form has to keep working: it is in every existing
-# retuner.ini, including the shipped default.
+# viritin.ini, including the shipped default.
 write_config "127.0.0.1" "correct horse battery"
 start_server "$WORK/run6.log" || { echo "server did not start" >&2; exit 1; }
 is "the single-address form still works" 200 "http://127.0.0.1:$GUI_PORT/" -u 'admin:correct horse battery'

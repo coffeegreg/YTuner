@@ -1,0 +1,13 @@
+[Unit]
+Description=Update Viritin to the latest release
+Documentation=https://github.com/ollisulopuisto/viritin/blob/master/doc/APPLIANCE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Root, because it replaces the binary and restarts the unit. The script itself
+# does nothing else with the privilege: it never touches viritin.ini or config/.
+ExecStart=/opt/viritin/viritin-update.sh
+Environment=PREFIX=/opt/viritin
+Environment=SERVICE=retuner

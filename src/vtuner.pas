@@ -82,12 +82,13 @@ const
   VT_XML_RELIA = 'Relia';
   VT_XML_BOOKMARK = 'Bookmark';
   VT_XML_ENCRYPTEDTOKEN = '<EncryptedToken></EncryptedToken>';
-  PATH_PARAM_DUMMY = '?retuner=true';
+  PATH_PARAM_DUMMY = '?viritin=true';
 
   VT_TOKEN = '0123456789ABCDEF';
 var
   MyToken: string = VT_TOKEN;
 
+function AddViritinParameter(URL: string): string;
 function AddRetunerParameter(URL: string): string;
 
 implementation
@@ -213,9 +214,14 @@ begin
     end;
 end;
 
+function AddViritinParameter(URL: string): string;
+begin
+  AddViritinParameter:=URL+PATH_PARAM_DUMMY;
+end;
+
 function AddRetunerParameter(URL: string): string;
 begin
-  AddRetunerParameter:=URL+PATH_PARAM_DUMMY;
+  AddRetunerParameter:=AddViritinParameter(URL);
 end;
 
 end.

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Tests for script/retuner-update.sh, which runs unattended on machines nobody
+# Tests for script/viritin-update.sh, which runs unattended on machines nobody
 # is sitting at. The rollback is the reason it exists, so the rollback is
 # tested; an updater whose recovery path has never run is an updater that has
 # only ever been tried on the happy day.
@@ -14,7 +14,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN=${1:-}
 if [ -z "$BIN" ]; then
   # shellcheck disable=SC2012  # one glob under bin/, named by the target triple
-  BIN=$(ls "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
+  BIN=$(ls "$ROOT"/bin/*/viritin 2>/dev/null | head -1) \
     || { echo "error: no binary found; run script/build.sh first" >&2; exit 1; }
 fi
 [ -x "$BIN" ] || { echo "error: $BIN is not executable" >&2; exit 1; }
@@ -62,10 +62,10 @@ if [ -f "$SERVICE_PID_FILE" ]; then
   sleep 0.5
 fi
 if [ -f "$WORK/refuse" ] \\
-   && [ "\$(cksum < "$WORK/install/retuner")" != "\$(cat "$WORK/good.cksum")" ]; then
+   && [ "\$(cksum < "$WORK/install/viritin")" != "\$(cat "$WORK/good.cksum")" ]; then
   exit 0
 fi
-( cd "$WORK/install" && exec ./retuner -p "$PORT" > "$WORK/install/service.log" 2>&1 ) &
+( cd "$WORK/install" && exec ./viritin -p "$PORT" > "$WORK/install/service.log" 2>&1 ) &
 echo \$! > "$SERVICE_PID_FILE"
 RESTART
 chmod +x "$WORK/restart.sh"
@@ -75,13 +75,13 @@ chmod +x "$WORK/restart.sh"
 # shipped config that an update must not put over the user's.
 make_release() { # $1 = version, $2 = binary to package
   rm -rf "$WORK/assets"; mkdir -p "$WORK/assets"
-  stage="$WORK/stage/retuner-$1-$TARGET"
+  stage="$WORK/stage/viritin-$1-$TARGET"
   rm -rf "$WORK/stage"; mkdir -p "$stage/config"
   cp "$2" "$stage/retuner"; chmod +x "$stage/retuner"
-  cp "$ROOT/cfg/retuner.ini" "$stage/"
+  cp "$ROOT/cfg/viritin.ini" "$stage/"
   cp "$ROOT/cfg/avr.ini" "$stage/config/"
-  ( cd "$WORK/stage" && tar -czf "$WORK/assets/retuner-$1-$TARGET.tar.gz" \
-      "retuner-$1-$TARGET" )
+  ( cd "$WORK/stage" && tar -czf "$WORK/assets/viritin-$1-$TARGET.tar.gz" \
+      "viritin-$1-$TARGET" )
 }
 
 start_mock() { # $1 = version, $2 = digest mode
@@ -104,9 +104,9 @@ start_mock() { # $1 = version, $2 = digest mode
 install_version() { # $1 = version
   stop_service
   rm -rf "$WORK/install"; mkdir -p "$WORK/install/config"
-  cp "$BIN" "$WORK/install/retuner"
+  cp "$BIN" "$WORK/install/viritin"
   printf '%s\n' "$1" > "$WORK/install/.version"
-  cat > "$WORK/install/retuner.ini" <<INI
+  cat > "$WORK/install/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=4
@@ -133,7 +133,7 @@ update() { # runs the updater against the mock, returns its exit status
   RESTART_CMD="$WORK/restart.sh" \
   LOGFILE="${LOGFILE:-$WORK/install/service.log}" \
   PROBE_PORT=18903 \
-    sh "$ROOT/script/retuner-update.sh" "$@" > "$WORK/update.log" 2>&1
+    sh "$ROOT/script/viritin-update.sh" "$@" > "$WORK/update.log" 2>&1
 }
 
 echo "Testing the updater with $BIN"
@@ -143,17 +143,17 @@ echo "- an install that is already current"
 install_version 9.9.9.9
 make_release 9.9.9.9 "$BIN"
 start_mock 9.9.9.9 good
-before=$(cksum < "$WORK/install/retuner")
+before=$(cksum < "$WORK/install/viritin")
 if update; then ok "the updater succeeds"; else bad "the updater failed"; fi
 if grep -q "already current" "$WORK/update.log"; then
   ok "it says so and stops"
 else bad "it did not report being current"; fi
-if [ "$(cksum < "$WORK/install/retuner")" = "$before" ]; then
+if [ "$(cksum < "$WORK/install/viritin")" = "$before" ]; then
   ok "the binary is untouched"
 else bad "the binary changed with nothing to update"; fi
 
 # --- the ordinary upgrade ----------------------------------------------------
-# The archive carries retuner.ini and config/avr.ini. Copying those over an
+# The archive carries viritin.ini and config/avr.ini. Copying those over an
 # install is how a routine update would silently revert somebody's filters,
 # stations and podcasts to the shipped defaults - so this checks the user's
 # files by content, not just that the binary moved.
@@ -166,13 +166,13 @@ if update; then ok "the updater succeeds"; else
 if [ "$(cat "$WORK/install/.version")" = "2.0.0.0" ]; then
   ok "the recorded version moves"
 else bad "the recorded version is $(cat "$WORK/install/.version")"; fi
-if grep -q "MyOwnSetting=keep-me" "$WORK/install/retuner.ini"; then
-  ok "retuner.ini is not overwritten by the archive's copy"
-else bad "retuner.ini was replaced"; fi
+if grep -q "MyOwnSetting=keep-me" "$WORK/install/viritin.ini"; then
+  ok "viritin.ini is not overwritten by the archive's copy"
+else bad "viritin.ini was replaced"; fi
 if grep -q "BitrateMax=333" "$WORK/install/config/avr.ini"; then
   ok "config/avr.ini is not overwritten by the archive's copy"
 else bad "config/avr.ini was replaced"; fi
-if [ -f "$WORK/install/retuner.previous" ]; then
+if [ -f "$WORK/install/viritin.previous" ]; then
   ok "the previous binary is kept for rollback"
 else bad "no previous binary was kept"; fi
 # The first version of this check read a digest out of the REST API, where
@@ -194,13 +194,13 @@ install_version 1.0.0.0
 printf '#!/bin/sh\nexit 3\n' > "$WORK/broken"; chmod +x "$WORK/broken"
 make_release 3.0.0.0 "$WORK/broken"
 start_mock 3.0.0.0 good
-before=$(cksum < "$WORK/install/retuner")
+before=$(cksum < "$WORK/install/viritin")
 if update; then bad "the updater reported success on a broken release"; else
   ok "the updater fails"; fi
 if grep -q "did not serve" "$WORK/update.log"; then
   ok "it says the download did not serve"
 else bad "it did not explain why"; fi
-if [ "$(cksum < "$WORK/install/retuner")" = "$before" ]; then
+if [ "$(cksum < "$WORK/install/viritin")" = "$before" ]; then
   ok "the installed binary is untouched"
 else bad "a binary that cannot serve was installed anyway"; fi
 if [ "$(cat "$WORK/install/.version")" = "1.0.0.0" ]; then
@@ -222,8 +222,8 @@ install_version 1.0.0.0
 # this rewrote one key and passed against the very bug it exists for.
 awk '/^IPAddress=/ { print "IPAddress=default"; next }
      /^WebServerIPAddress=/ { print "WebServerIPAddress=default"; next }
-     { print }' "$WORK/install/retuner.ini" > "$WORK/r.new"
-mv "$WORK/r.new" "$WORK/install/retuner.ini"
+     { print }' "$WORK/install/viritin.ini" > "$WORK/r.new"
+mv "$WORK/r.new" "$WORK/install/viritin.ini"
 make_release 8.0.0.0 "$BIN"
 start_mock 8.0.0.0 good
 if LOGFILE="$WORK/install/service.log" update; then
@@ -253,8 +253,8 @@ stop_service
 # stand-in is what declines to bring it up as the service.
 echo "- a release that passes the probe and then fails as the service"
 install_version 1.0.0.0
-before=$(cksum < "$WORK/install/retuner")
-cksum < "$WORK/install/retuner" > "$WORK/good.cksum"
+before=$(cksum < "$WORK/install/viritin")
+cksum < "$WORK/install/viritin" > "$WORK/good.cksum"
 : > "$WORK/refuse"
 # A working binary that is byte-different from the installed one, so the
 # restart stand-in can tell them apart. Trailing bytes trouble neither an ELF
@@ -271,7 +271,7 @@ else bad "it did not roll back"; fi
 if grep -q "rolled back to 1.0.0.0$" "$WORK/update.log"; then
   ok "the rollback is confirmed healthy"
 else bad "the rollback did not come up"; fi
-if [ "$(cksum < "$WORK/install/retuner")" = "$before" ]; then
+if [ "$(cksum < "$WORK/install/viritin")" = "$before" ]; then
   ok "the original binary is back in place"
 else bad "the installed binary is not the one we started with"; fi
 if [ "$(cat "$WORK/install/.version")" = "1.0.0.0" ]; then
@@ -288,13 +288,13 @@ echo "- published checksums that do not match"
 install_version 1.0.0.0
 make_release 4.0.0.0 "$BIN"
 start_mock 4.0.0.0 bad
-before=$(cksum < "$WORK/install/retuner")
+before=$(cksum < "$WORK/install/viritin")
 if update; then bad "the updater installed an archive failing its own digest"; else
   ok "the updater fails"; fi
 if grep -q "sha256 mismatch" "$WORK/update.log"; then
   ok "it names the mismatch"
 else bad "it did not name the mismatch"; fi
-if [ "$(cksum < "$WORK/install/retuner")" = "$before" ]; then
+if [ "$(cksum < "$WORK/install/viritin")" = "$before" ]; then
   ok "the installed binary is untouched"
 else bad "the binary was replaced despite the mismatch"; fi
 
@@ -316,12 +316,12 @@ echo "- --check reports without acting"
 install_version 1.0.0.0
 make_release 6.0.0.0 "$BIN"
 start_mock 6.0.0.0 good
-before=$(cksum < "$WORK/install/retuner")
+before=$(cksum < "$WORK/install/viritin")
 if update --check; then ok "the updater succeeds"; else bad "--check failed"; fi
 if grep -q "would update 1.0.0.0 -> 6.0.0.0" "$WORK/update.log"; then
   ok "it names both versions"
 else bad "it did not report what it would do"; fi
-if [ "$(cksum < "$WORK/install/retuner")" = "$before" ]; then
+if [ "$(cksum < "$WORK/install/viritin")" = "$before" ]; then
   ok "the binary is untouched"
 else bad "--check installed something"; fi
 

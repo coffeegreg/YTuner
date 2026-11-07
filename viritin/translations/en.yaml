@@ -6,7 +6,7 @@ configuration:
     name: Address the receiver should use
     description: >-
       The address your receiver is told to fetch stations and artwork from.
-      Leave this blank and Retuner uses this machine's own address, which is
+      Leave this blank and Viritin uses this machine's own address, which is
       right whenever the receiver is on the same network. Only set it when that
       address is not the one the receiver can reach — for example when this
       machine sits behind NAT from the receiver's point of view.
@@ -14,7 +14,7 @@ configuration:
     name: Radio service port
     description: >-
       The port the receiver connects to. Leave this at 80: the firmware asks
-      for port 80 and that is not negotiable from Retuner's side. Changing it
+      for port 80 and that is not negotiable from Viritin's side. Changing it
       only helps if something else puts it back on 80 in front.
   local_country:
     name: Your country
@@ -27,14 +27,14 @@ configuration:
     name: Follow playlist links
     description: >-
       Many station links are .m3u or .pls files rather than the audio itself,
-      and firmware of this era often cannot follow one. With this on, Retuner
+      and firmware of this era often cannot follow one. With this on, Viritin
       opens the playlist and hands the receiver the stream inside it. Costs one
       small fetch when a station is selected.
   relay_https:
     name: Relay HTTPS-only stations
     description: >-
       These receivers have no TLS at all, so an HTTPS-only station simply will
-      not play. With this on, Retuner fetches such a stream itself and re-serves
+      not play. With this on, Viritin fetches such a stream itself and re-serves
       it unencrypted on your network. Turn it on if stations list but refuse to
       play, and if you use podcasts. The cost is real: a relayed station holds a
       connection and a thread here for as long as it plays.
@@ -44,7 +44,7 @@ configuration:
   dns_service:
     name: Run the DNS service
     description: >-
-      Retuner's own DNS server, which answers the hostname your receiver asks
+      Viritin's own DNS server, which answers the hostname your receiver asks
       for — vTuner's for an AVR, wifiradiofrontier.com for a Frontier Silicon
       table radio. Leave this off if you already redirect those at your router,
       Pi-hole or AdGuard — that is the tidier route. Note that port 53 is often
@@ -101,7 +101,7 @@ configuration:
       Comma-separated two-letter country codes, such as "fi" or "fi,se".
       Anything that is not exactly two letters is refused and named in the log.
       Leave empty and nothing is fetched. Available lists are in the presets
-      folder of the Retuner repository.
+      folder of the Viritin repository.
   podcasts:
     name: Podcasts
     description: >-
@@ -146,7 +146,7 @@ configuration:
   advanced_ini:
     name: Extra configuration
     description: >-
-      Anything Retuner supports that the options above do not cover, in ini
+      Anything Viritin supports that the options above do not cover, in ini
       format including the [Section] header. It is merged into the generated
       configuration, so a setting here overrides the same setting above and a
       section that already exists is added to rather than duplicated.

@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>io.github.ollisulopuisto.retuner</string>
+  <string>io.github.ollisulopuisto.viritin</string>
 
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/retuner/retuner</string>
+    <string>/usr/local/viritin/viritin</string>
   </array>
 
-  <!-- Retuner reads retuner.ini from the directory it runs in, and writes its
+  <!-- Viritin reads viritin.ini from the directory it runs in, and writes its
        cache and config beside it. -->
   <key>WorkingDirectory</key>
-  <string>/usr/local/retuner</string>
+  <string>/usr/local/viritin</string>
 
   <key>RunAtLoad</key>
   <true/>
@@ -24,8 +24,8 @@
        port 80 needs and what the receiver's firmware leaves no choice about.
        See doc/MACOS.md for the unprivileged alternative. -->
   <key>StandardOutPath</key>
-  <string>/usr/local/retuner/retuner.log</string>
+  <string>/usr/local/viritin/viritin.log</string>
   <key>StandardErrorPath</key>
-  <string>/usr/local/retuner/retuner.log</string>
+  <string>/usr/local/viritin/viritin.log</string>
 </dict>
 </plist>

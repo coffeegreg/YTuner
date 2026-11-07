@@ -39,15 +39,15 @@ jobs:
           # The single quotes in the Pascal constant are the delimiters, which
           # is what makes this greppable at all: APP_VERSION = '26.08.28.3';
           app=$(sed -n "s/^ *APP_VERSION *= *'\([0-9.]*\)'.*/\1/p" src/common.pas)
-          addon=$(sed -n 's/^version: *"\([0-9.]*\)".*/\1/p' retuner/config.yaml)
+          addon=$(sed -n 's/^version: *"\([0-9.]*\)".*/\1/p' viritin/config.yaml)
           echo "src/common.pas:      $app"
-          echo "retuner/config.yaml: $addon"
+          echo "viritin/config.yaml: $addon"
 
           [ -n "$app" ] || { echo "no APP_VERSION found in src/common.pas"; exit 1; }
           # The add-on's version tracks APP_VERSION, and a release where they
           # disagree ships a binary and an add-on that claim different things.
           if [ "$app" != "$addon" ]; then
-            echo "::error::src/common.pas says $app and retuner/config.yaml says $addon"
+            echo "::error::src/common.pas says $app and viritin/config.yaml says $addon"
             exit 1
           fi
 

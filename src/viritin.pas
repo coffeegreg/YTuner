@@ -1,15 +1,15 @@
-program retuner;
+program viritin;
 
-// Retuner main unit.
+// Viritin main unit.
 
-// Retuner is a simple project designed to replace vTuner internet radio service and dedicated to
+// Viritin is a simple project designed to replace vTuner internet radio service and dedicated to
 // all users of AVRs made by Yamaha, Denon, Onkyo, Marantz and others with built-in vTuner support.
 
-// Retuner is a fork of YTuner by Greg P. (https://github.com/coffeegreg/YTuner),
+// Viritin is a fork of YTuner by Greg P. (https://github.com/coffeegreg/YTuner),
 // whose work almost all of this is.
 //
 // Copyright (c) 2023 Greg P. (https://github.com/coffeegreg)
-// Copyright (c) 2026 Olli Sulopuisto (Retuner, a fork of YTuner)
+// Copyright (c) 2026 Olli Sulopuisto (Viritin, formerly Retuner, a fork of YTuner)
 // MIT licensed, as YTuner is. See LICENSE.txt, which carries both notices.
 
 {$mode objfpc}{$H+}
@@ -124,22 +124,34 @@ begin
   BeginThread(@RefreshPresetsThread);
 end;
 
-// An install predating the rename has ytuner.ini and no retuner.ini. Renaming it
-// keeps every setting, rather than silently starting from defaults -- which
+// An install predating the rename has retuner.ini or ytuner.ini and no viritin.ini.
+// Renaming it keeps every setting, rather than silently starting from defaults -- which
 // would not look like a failure, it would look like the config was ignored.
 procedure MigrateLegacyConfig;
 var
-  LNew, LOld: string;
+  LNew, LOld, LOldYtuner: string;
 begin
   LNew:=MyAppPath+CONFIG_FILE_NAME;
   LOld:=MyAppPath+CONFIG_FILE_NAME_LEGACY;
-  if FileExists(LNew) or (not FileExists(LOld)) then
+  LOldYtuner:=MyAppPath+CONFIG_FILE_NAME_LEGACY_YTUNER;
+  if FileExists(LNew) then
     Exit;
-  if RenameFile(LOld,LNew) then
-    Logging(ltInfo, 'Renamed '+CONFIG_FILE_NAME_LEGACY+' to '+CONFIG_FILE_NAME)
-  else
-    Logging(ltWarning, 'Found '+CONFIG_FILE_NAME_LEGACY+' but could not rename it to '+
-                       CONFIG_FILE_NAME+'; copy it across by hand, or settings will be defaults');
+  if FileExists(LOld) then
+  begin
+    if RenameFile(LOld,LNew) then
+      Logging(ltInfo, 'Renamed '+CONFIG_FILE_NAME_LEGACY+' to '+CONFIG_FILE_NAME)
+    else
+      Logging(ltWarning, 'Found '+CONFIG_FILE_NAME_LEGACY+' but could not rename it to '+
+                         CONFIG_FILE_NAME+'; copy it across by hand, or settings will be defaults');
+  end
+  else if FileExists(LOldYtuner) then
+  begin
+    if RenameFile(LOldYtuner,LNew) then
+      Logging(ltInfo, 'Renamed '+CONFIG_FILE_NAME_LEGACY_YTUNER+' to '+CONFIG_FILE_NAME)
+    else
+      Logging(ltWarning, 'Found '+CONFIG_FILE_NAME_LEGACY_YTUNER+' but could not rename it to '+
+                         CONFIG_FILE_NAME+'; copy it across by hand, or settings will be defaults');
+  end;
 end;
 
 procedure ReadINIConfiguration;

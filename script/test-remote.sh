@@ -15,7 +15,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN=${1:-}
 if [ -z "$BIN" ]; then
   # shellcheck disable=SC2012  # one glob under bin/, named by the target triple
-  BIN=$(ls "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
+  BIN=$(ls "$ROOT"/bin/*/viritin 2>/dev/null | head -1) \
     || { echo "error: no binary found; run script/build.sh first" >&2; exit 1; }
 fi
 [ -x "$BIN" ] || { echo "error: $BIN is not executable" >&2; exit 1; }
@@ -53,7 +53,7 @@ hasnt() {
   else ok "$1"; fi
 }
 
-cp "$BIN" "$WORK/retuner"
+cp "$BIN" "$WORK/viritin"
 
 # Each phase gets its own ports, for the reason recorded in test-radiobrowser.sh:
 # a shared pair lets a server that failed to start leave the previous phase
@@ -99,7 +99,7 @@ stop_denon() {
 # $1 = RemoteAVRAddress value
 write_config() {
   mkdir -p "$WORK/config"
-  cat > "$WORK/retuner.ini" <<INI
+  cat > "$WORK/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=4
@@ -126,7 +126,7 @@ INI
 }
 
 start_server() {
-  ( cd "$WORK" && exec ./retuner -p "$PORT" >"$1" 2>&1 ) &
+  ( cd "$WORK" && exec ./viritin -p "$PORT" >"$1" 2>&1 ) &
   PID=$!
   i=0
   while [ "$i" -lt 50 ]; do
@@ -136,7 +136,7 @@ start_server() {
     fi
     i=$((i + 1)); sleep 0.2
   done
-  echo "error: retuner web gui did not start on $GUI_PORT" >&2
+  echo "error: viritin web gui did not start on $GUI_PORT" >&2
   cat "$1" >&2
   exit 1
 }
@@ -166,7 +166,7 @@ C=$(gui_code "http://127.0.0.1:$GUI_PORT/remote")
 has "an unauthenticated request is refused" "$C" "401"
 
 P=$(gui "http://127.0.0.1:$GUI_PORT/remote")
-has "the page is served to an authenticated client" "$P" "retuner-remote"
+has "the page is served to an authenticated client" "$P" "viritin-remote"
 
 S=$(gui "http://127.0.0.1:$GUI_PORT/api/remote/status")
 has "the list the receiver is showing comes through" "$S" "Radio Browser"

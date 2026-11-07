@@ -1,19 +1,19 @@
-# Retuner in a MikroTik RouterOS container
-If you own a MikroTik router with container support, you don't need a separate machine for Retuner at all. The router already is the DNS server of your network, so it can point `*.vtuner.com` to a Retuner container running on the router itself.
+# Viritin in a MikroTik RouterOS container
+If you own a MikroTik router with container support, you don't need a separate machine for Viritin at all. The router already is the DNS server of your network, so it can point `*.vtuner.com` to a Viritin container running on the router itself.
 ## Assumptions
 - RouterOS v7 on an ARM64 (e.g. RB5009, hAP ax, CCR2004) or x86/CHR device. Tested on RB5009 with RouterOS 7.24.
-- A USB/NVMe disk attached to the router (ext4). The image is ~100MB and Retuner writes cache and DB files, so internal flash is not a good place for it.
+- A USB/NVMe disk attached to the router (ext4). The image is ~100MB and Viritin writes cache and DB files, so internal flash is not a good place for it.
 - Default MikroTik LAN `192.168.88.0/24` on interface `bridge`, with the router at `192.168.88.1`. The container will get `192.168.88.5`. Adjust to your network and pick an address outside your DHCP pool.
 - AVRs use the router as their DNS server (default when they get their address from the router's DHCP server).
 
 The files used below are in the [mikrotik](../mikrotik) directory of this repository:
-- `Dockerfile` - compiles Retuner from this repository's source with `script/build.sh` and packs it in a Debian bookworm-slim based image with SQLite3 and OpenSSL libraries. Default config files come from `cfg/`.
-- `entrypoint.sh` - on first start, copies the default `retuner.ini` and config files to `/data`, then runs Retuner.
+- `Dockerfile` - compiles Viritin from this repository's source with `script/build.sh` and packs it in a Debian bookworm-slim based image with SQLite3 and OpenSSL libraries. Default config files come from `cfg/`.
+- `entrypoint.sh` - on first start, copies the default `viritin.ini` and config files to `/data`, then runs Viritin.
 - `build.sh` - builds the image and saves it as a tar file ready for RouterOS.
 
-All Retuner state (`retuner.ini`, `config`, `cache`, `db`) lives in `/data`, which is mounted from the router's disk. Updating or recreating the container keeps your stations, bookmarks and database.
+All Viritin state (`viritin.ini`, `config`, `cache`, `db`) lives in `/data`, which is mounted from the router's disk. Updating or recreating the container keeps your stations, bookmarks and database.
 
-The image's default `retuner.ini` differs from `cfg/retuner.ini` in:
+The image's default `viritin.ini` differs from `cfg/viritin.ini` in:
 ```
 CacheFolderLocation=/data
 ConfigFolderLocation=/data
@@ -22,7 +22,7 @@ MessageInfoLevel=1
 [DNSServer]
 Enable=0
 ```
-Retuner's own DNS service is disabled because RouterOS static DNS entries do the job.
+Viritin's own DNS service is disabled because RouterOS static DNS entries do the job.
 ## That's easy
 ### 1) Build the image
 On any x86_64 Linux machine with Docker (buildx), no ARM emulation needed:
@@ -75,19 +75,19 @@ Create and start the container:
 /container add name=retuner file=usb1/retuner/retuner-arm64.tar interface=veth-retuner root-dir=usb1/retuner/root mountlists=retuner hostname=retuner logging=yes start-on-boot=yes
 /container start retuner
 ```
-With `logging=yes`, Retuner output shows up in the router log:
+With `logging=yes`, Viritin output shows up in the router log:
 ```
 /log print where topics~"container"
 ...
 container,info,debug retuner: *** started /entrypoint.sh
-container,info,debug retuner: Retuner - a fork of YTuner 1.2.6 by Greg P. (MIT) - https://github.com/ollisulopuisto/retuner
+container,info,debug retuner: Viritin - a fork of YTuner 1.2.6 by Greg P. (MIT) - https://github.com/ollisulopuisto/viritin
 container,info,debug retuner: 25-10-26 15:28:37 : Inf : Starting services...
 container,info,debug retuner: 25-10-26 15:28:37 : Inf : Successfully loaded 10 my stations.
 container,info,debug retuner: 25-10-26 15:28:37 : Inf : Checking local database.
 container,info,debug retuner: 25-10-26 15:28:37 : Inf : Local database is ready.
 container,info,debug retuner: 25-10-26 15:28:37 : Inf : Web Service: listening on: 192.168.88.5:80.
 ```
-On the very first start, Retuner logs `Preparing local database` and downloads the whole Radio-browser.info database first, which takes about 5 minutes on an RB5009. Once the container is running, the tar file and the `tmp` directory are no longer needed:
+On the very first start, Viritin logs `Preparing local database` and downloads the whole Radio-browser.info database first, which takes about 5 minutes on an RB5009. Once the container is running, the tar file and the `tmp` directory are no longer needed:
 ```
 /container config set tmpdir=""
 /file remove usb1/retuner/tmp
@@ -113,24 +113,24 @@ and flush the DNS cache:
 ```
 Then power cycle your AVR, so it forgets any cached DNS answers, and open its internet radio.
 ## Configuration and updates
-Edit `retuner.ini` and your stations file in `usb1/retuner/data` (WinBox Files, SFTP or SMB share) and restart the container:
+Edit `viritin.ini` and your stations file in `usb1/retuner/data` (WinBox Files, SFTP or SMB share) and restart the container:
 ```
 /container stop retuner
 /container start retuner
 ```
-To update Retuner, build a new tar file, upload it and recreate the container with the same options as in step 6. Your `/data` stays untouched:
+To update Viritin, build a new tar file, upload it and recreate the container with the same options as in step 6. Your `/data` stays untouched:
 ```
 /container stop retuner
 /container remove retuner
 /container add name=retuner file=usb1/retuner/retuner-arm64.tar interface=veth-retuner root-dir=usb1/retuner/root mountlists=retuner hostname=retuner logging=yes start-on-boot=yes
 /container start retuner
 ```
-With `RBCacheTTL=0` the station database is never refreshed. To get a fresh copy of Radio-browser.info, remove it before starting the container, and Retuner builds a new one:
+With `RBCacheTTL=0` the station database is never refreshed. To get a fresh copy of Radio-browser.info, remove it before starting the container, and Viritin builds a new one:
 ```
 /file remove usb1/retuner/data/db/rb.db
 ```
 ### Coming from a YTuner container
-Keep your YTuner container's mount list and point the new container at the same `/data`. On first start the entrypoint renames `/data/ytuner.ini` to `retuner.ini`, keeping every setting, and the existing station database, config files and bookmarks are used as they are. `/ytuner/` URLs your AVR stored are still served.
+Keep your YTuner container's mount list and point the new container at the same `/data`. On first start the entrypoint renames `/data/ytuner.ini` to `viritin.ini`, keeping every setting, and the existing station database, config files and bookmarks are used as they are. `/ytuner/` URLs your AVR stored are still served.
 
 To keep a way back, stop the old container rather than removing it, and use a new `root-dir` for the new one (both can use the same veth interface, as long as only one runs):
 ```
@@ -139,8 +139,8 @@ To keep a way back, stop the old container rather than removing it, and use a ne
 /container add name=retuner file=usb1/ytuner/retuner-arm64.tar interface=veth-ytuner root-dir=usb1/ytuner/root-retuner mountlists=ytuner hostname=retuner logging=yes start-on-boot=yes
 /container start retuner
 ```
-To go back, rename `retuner.ini` to `ytuner.ini` in the data directory, stop `retuner` and start `ytuner`.
->Tip: Radio-browser.info servers return only 1000 stations for requests without an explicit `limit`, and YTuner 1.2.6 sends none. If your database holds only about 1000 stations, remove `rb.db` as shown above and Retuner builds a complete one.
+To go back, rename `viritin.ini` to `ytuner.ini` in the data directory, stop `retuner` and start `ytuner`.
+>Tip: Radio-browser.info servers return only 1000 stations for requests without an explicit `limit`, and YTuner 1.2.6 sends none. If your database holds only about 1000 stations, remove `rb.db` as shown above and Viritin builds a complete one.
 ## Summary
-Retuner uses about 50MB of RAM on an RB5009 with `catPermMemDB` cache and the full Radio-browser.info database (~70,000 stations), so it runs comfortably next to the usual router tasks.
+Viritin uses about 50MB of RAM on an RB5009 with `catPermMemDB` cache and the full Radio-browser.info database (~70,000 stations), so it runs comfortably next to the usual router tasks.
 Use the MikroTik documentation to learn more about containers (https://help.mikrotik.com/docs/spaces/ROS/pages/84901929/Container).

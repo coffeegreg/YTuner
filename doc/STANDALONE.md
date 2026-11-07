@@ -1,23 +1,23 @@
-# Retuner on a machine of its own
+# Viritin on a machine of its own
 
-The receiver's firmware asks for port 80, and Retuner advertises every station
+The receiver's firmware asks for port 80, and Viritin advertises every station
 and artwork URL as `http://<host>/…` with no port in it. So port 80 at the
-address the receiver is sent to has to be Retuner, and nothing else. Moving
-`WebServerPort` does not help: it changes where Retuner listens, not what it
+address the receiver is sent to has to be Viritin, and nothing else. Moving
+`WebServerPort` does not help: it changes where Viritin listens, not what it
 tells the receiver.
 
 That is a problem on any machine already serving something on 80 — a Home
 Assistant box behind an nginx proxy is the usual one. Three ways out:
 
 1. Take port 80 away from the other service. Cheapest when you can.
-2. Give Retuner a second address on the same machine. Only works if the other
+2. Give Viritin a second address on the same machine. Only works if the other
    service is bound to one specific address; a wildcard bind (`0.0.0.0:80`,
    which is what a Docker port mapping gives you) occupies port 80 on *every*
    address the machine has, and then whichever service starts first wins and the
    other one fails. Check with `docker ps` or, on a system with no tools,
    `awk '$4=="0A"{print $2}' /proc/net/tcp | grep -i ':0050$'` — `00000000:0050`
    is the wildcard.
-3. Give Retuner a machine. That is this document — or, if the machine you have
+3. Give Viritin a machine. That is this document — or, if the machine you have
    in mind is a Mac that already stays on, [MACOS.md](MACOS.md), which needs no
    virtual machine at all.
 
@@ -30,7 +30,7 @@ A machine of its own is not a heavy answer. Measured rather than guessed:
 | the source tree, the Indy clone and the build output | ~85 MB |
 
 So one core and 512 MB of RAM runs it comfortably, and 8 GB of disk is generous.
-The thing that wants more memory is the **installer**, not Retuner: Debian's
+The thing that wants more memory is the **installer**, not Viritin: Debian's
 graphical installer expects well over a gigabyte. Give the VM 2 GB while you
 install, then shut it down and turn the memory back down — or use the text-mode
 installer, which is far less hungry. If memory is genuinely scarce, build the
@@ -61,7 +61,7 @@ receiver just shows an empty menu.
 ```sh
 sudo apt install -y fp-compiler fp-units-fcl fp-units-net fp-units-db \
                     fp-units-misc lazarus-src zip git
-git clone https://github.com/ollisulopuisto/retuner ~/retuner
+git clone https://github.com/ollisulopuisto/viritin ~/retuner
 cd ~/retuner && ./script/build.sh          # Indy is fetched on the first run
 ```
 
@@ -69,14 +69,14 @@ Lay the runtime directory out the way the README describes, with the binary and
 its ini side by side:
 
 ```sh
-sudo mkdir -p /opt/retuner/config /opt/retuner/cache
-sudo cp bin/*/retuner cfg/retuner.ini /opt/retuner/
-sudo cp cfg/avr.ini /opt/retuner/config/
+sudo mkdir -p /opt/viritin/config /opt/viritin/cache
+sudo cp bin/*/retuner cfg/viritin.ini /opt/viritin/
+sudo cp cfg/avr.ini /opt/viritin/config/
 sudo useradd -r -s /usr/sbin/nologin retuner
-sudo chown -R retuner:retuner /opt/retuner
+sudo chown -R retuner:retuner /opt/viritin
 ```
 
-Then edit `/opt/retuner/retuner.ini`. The settings that matter for this layout:
+Then edit `/opt/viritin/viritin.ini`. The settings that matter for this layout:
 
 ```ini
 [Configuration]
@@ -93,12 +93,12 @@ some address other than its own — behind NAT, for instance.
 
 ## Running it
 
-`doc/retuner.service` is a unit for this layout. It grants `CAP_NET_BIND_SERVICE`
+`doc/viritin.service` is a unit for this layout. It grants `CAP_NET_BIND_SERVICE`
 rather than running as root, and confines what an image decoder handed a hostile
 file could reach.
 
 ```sh
-sudo cp doc/retuner.service /etc/systemd/system/
+sudo cp doc/viritin.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now retuner
 journalctl -u retuner -f
@@ -111,18 +111,18 @@ a netlink socket; without it those settings resolve to nothing.
 ## Updating
 
 Running from a clone means an update is a pull and a rebuild. The ini in
-`/opt/retuner` is untouched by it.
+`/opt/viritin` is untouched by it.
 
 ```sh
 cd ~/retuner && git pull && ./script/build.sh
-sudo install -o retuner -g retuner bin/*/retuner /opt/retuner/retuner
+sudo install -o retuner -g retuner bin/*/retuner /opt/viritin/viritin
 sudo systemctl restart retuner
 ```
 
 ## Checking it works, in an order that localises a failure
 
 ```sh
-curl -I http://<this machine>/setupapp/x/loginxml.asp?token=0   # Retuner on 80
+curl -I http://<this machine>/setupapp/x/loginxml.asp?token=0   # Viritin on 80
 dig radioyamaha.vtuner.com @<your resolver>                     # the override
 dig radioyamaha.vtuner.com                                      # what the receiver gets
 ```

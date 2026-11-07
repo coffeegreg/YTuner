@@ -1,8 +1,8 @@
 #!/bin/sh
-# Start a freshly built Retuner against a throwaway config and check that it
+# Start a freshly built Viritin against a throwaway config and check that it
 # actually serves the vTuner endpoints an AVR hits first.
 #
-#   ./script/smoke-test.sh [path-to-retuner]
+#   ./script/smoke-test.sh [path-to-viritin]
 #
 # Radio-browser and the DNS server are switched off so the test stays offline
 # and needs no privileged ports.
@@ -13,7 +13,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN=${1:-}
 if [ -z "$BIN" ]; then
   # shellcheck disable=SC2012  # one glob under bin/, named by the target triple
-  BIN=$(ls "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
+  BIN=$(ls "$ROOT"/bin/*/viritin "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
     || { echo "error: no binary found; run script/build.sh first" >&2; exit 1; }
 fi
 [ -x "$BIN" ] || { echo "error: $BIN is not executable" >&2; exit 1; }
@@ -30,8 +30,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-cp "$BIN" "$WORK/retuner"
-cat > "$WORK/retuner.ini" <<EOF
+cp "$BIN" "$WORK/viritin"
+cat > "$WORK/viritin.ini" <<EOF
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=4
@@ -49,13 +49,8 @@ Enable=0
 Enable=1
 EOF
 
-# exec, so that $! is the server and not the subshell around it. Without it,
-# bash on macOS leaves the binary running when the pid is killed -- a CI run
-# there ended with the runner terminating fourteen orphan retuners, and an
-# orphan holding a port is what made a previous suite adopt a stray server and
-# blame the wrong component. Linux hid this: its shells optimise the last
-# command of a subshell into an exec anyway.
-( cd "$WORK" && exec ./retuner -p "$PORT" > server.log 2>&1 ) &
+# exec, so that $! is the server and not the subshell around it.
+( cd "$WORK" && exec ./viritin -p "$PORT" > server.log 2>&1 ) &
 PID=$!
 
 # Wait for the listener rather than sleeping a fixed amount.
@@ -88,8 +83,8 @@ check() {
 echo "Smoke testing $BIN on port $PORT"
 check "login token handshake" "/setupapp/x/loginxml.asp?token=0"        "EncryptedToken"
 check "main menu"             "/setupapp/x/loginxml.asp?mac=aabbccddee" "<ListOfItems>"
-check "about page"            "/retuner/about?mac=aabbccddee"            "Welcome to Retuner"
-check "empty folder message"  "/retuner/empty?mac=aabbccddee"            "<ItemType>Display</ItemType>"
+check "about page"            "/viritin/about?mac=aabbccddee"            "Welcome to Viritin"
+check "empty folder message"  "/viritin/empty?mac=aabbccddee"            "<ItemType>Display</ItemType>"
 
 # Frontier Silicon radios (Hama, Medion, Technisat, Roberts, Pure, Sangean,
 # Karcher and the rest) speak the same vTuner protocol as the AVRs, but ask for
@@ -100,11 +95,15 @@ check "empty folder message"  "/retuner/empty?mac=aabbccddee"            "<ItemT
 # wildcard to a single segment would otherwise break every Frontier device
 # without breaking a single test.
 # An AVR that saved a bookmark before the rename replays the absolute URL it
-# stored, which begins /ytuner/. Those routes are still registered for exactly
-# that reason, so the guarantee is asserted rather than assumed.
-echo "Bookmarks saved before the rename"
-check "the old root path still serves" \
-  "/ytuner/about?mac=aabbccddee"                                  "Welcome to Retuner"
+# stored, which begins /retuner/ or /ytuner/. Those routes are still registered
+# for exactly that reason, so the guarantee is asserted rather than assumed.
+echo "Bookmarks saved before the renames"
+check "the old retuner root path still serves" \
+  "/retuner/about?mac=aabbccddee"                                  "Welcome to Viritin"
+check "and so do its sub-paths" \
+  "/retuner/empty?mac=aabbccddee"                                  "<ItemType>Display</ItemType>"
+check "the old ytuner root path still serves" \
+  "/ytuner/about?mac=aabbccddee"                                  "Welcome to Viritin"
 check "and so do its sub-paths" \
   "/ytuner/empty?mac=aabbccddee"                                  "<ItemType>Display</ItemType>"
 
@@ -131,7 +130,7 @@ port_check() {
   fi
 }
 
-maint=$(sed -n 's/^MaintenanceServerPort=\([0-9]*\).*/\1/p' "$WORK/retuner.ini")
+maint=$(sed -n 's/^MaintenanceServerPort=\([0-9]*\).*/\1/p' "$WORK/viritin.ini")
 if [ -z "$maint" ]; then
   port_check "maintenance default is written to a fresh ini" "no MaintenanceServerPort line"
 else
@@ -139,9 +138,9 @@ else
   # options - the schema entries below them read "port", not a number, so they
   # do not match.
   other_ports=$(
-    grep -E '^[A-Za-z]+Port=[0-9]+' "$WORK/retuner.ini" \
+    grep -E '^[A-Za-z]+Port=[0-9]+' "$WORK/viritin.ini" \
       | grep -v '^MaintenanceServerPort=' | cut -d= -f2
-    sed -n 's/^  [a-z_]*port: *\([0-9][0-9]*\) *$/\1/p' "$ROOT/retuner/config.yaml"
+    sed -n 's/^  [a-z_]*port: *\([0-9][0-9]*\) *$/\1/p' "$ROOT/viritin/config.yaml"
   )
   clash=""
   for p in $other_ports; do
@@ -171,7 +170,7 @@ echo "A station with no logo still gets an image"
 icon_check() { # $1 = what it is, $2 = curl args
   # shellcheck disable=SC2086  # $2 is a deliberate argument list
   out=$(curl -s --noproxy '*' -o /dev/null -D - $2 \
-    "http://127.0.0.1:$PORT/retuner/icon?id=MS_AAAAAAAAAAAA" 2>/dev/null || true)
+    "http://127.0.0.1:$PORT/viritin/icon?id=MS_AAAAAAAAAAAA" 2>/dev/null || true)
   code=$(printf '%s' "$out" | sed -n 's|^HTTP/[0-9.]* \([0-9]*\).*|\1|p' | tail -1)
   ctype=$(printf '%s' "$out" | tr -d '\r' | sed -n 's/^[Cc]ontent-[Tt]ype: *//p' | tail -1)
   clen=$(printf '%s' "$out" | tr -d '\r' | sed -n 's/^[Cc]ontent-[Ll]ength: *//p' | tail -1)

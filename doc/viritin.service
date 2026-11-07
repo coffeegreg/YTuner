@@ -1,19 +1,19 @@
 [Unit]
-Description=Retuner - internet radio for AV receivers whose vTuner service shut down
-Documentation=https://github.com/ollisulopuisto/retuner/blob/master/doc/STANDALONE.md
+Description=Viritin - internet radio for AV receivers whose vTuner service shut down
+Documentation=https://github.com/ollisulopuisto/viritin/blob/master/doc/STANDALONE.md
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=retuner
-Group=retuner
-WorkingDirectory=/opt/retuner
-ExecStart=/opt/retuner/retuner
+User=viritin
+Group=viritin
+WorkingDirectory=/opt/viritin
+ExecStart=/opt/viritin/viritin
 Restart=on-failure
 RestartSec=5
 
-# The receiver's firmware asks for port 80 and Retuner advertises every station
+# The receiver's firmware asks for port 80 and Viritin advertises every station
 # URL without a port, so 80 is not negotiable. This grants that one port rather
 # than running the whole thing as root.
 AmbientCapabilities=CAP_NET_BIND_SERVICE
@@ -41,7 +41,7 @@ SystemCallArchitectures=native
 # enumerates interfaces over a netlink socket. Leave it out and every "default"
 # resolves to nothing - strace shows three netlink sockets on a plain start.
 RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6
-ReadWritePaths=/opt/retuner
+ReadWritePaths=/opt/viritin
 
 # An icon may claim up to 16 megapixels, which is 128 MB decoded, and serving
 # radio otherwise costs about 8 MB. This is the backstop for the case the

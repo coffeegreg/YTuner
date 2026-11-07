@@ -1,6 +1,6 @@
-# Retuner
+# Viritin
 
-Retuner is a maintained fork of [YTuner](https://github.com/coffeegreg/YTuner) by Greg P., which replaces the vTuner internet radio service that AV receivers of a certain age depend on. Upstream is MIT licensed and that licence, with its copyright notice, is carried forward here unchanged.
+Viritin is a maintained fork of [YTuner](https://github.com/coffeegreg/YTuner) by Greg P., which replaces the vTuner internet radio service that AV receivers of a certain age depend on. Upstream is MIT licensed and that licence, with its copyright notice, is carried forward here unchanged.
 
 ## Why the fork exists
 
@@ -17,7 +17,7 @@ Upstream's last change to `src/` was in **April 2025**; every commit since has b
 
 No upstream pull requests have been opened yet; the fixes are meant to go back, and this note will say so once they have. The fork exists so they are available now, not so the project is divided.
 
-## Why "Retuner"
+## Why "Viritin"
 
 The obvious names are all taken, and two of them are taken in ways that matter.
 
@@ -27,7 +27,7 @@ The obvious names are all taken, and two of them are taken in ways that matter.
 
 **Radio Bridge** is an IoT sensor company that owns `radiobridge.com`.
 
-"Retuner" is clear of all three, and it says what the software is for: bringing a receiver back into use after its manufacturer stopped supporting it. The prefix does the work — this is about hardware getting a second life, not about replacing a competitor.
+"Viritin" is clear of all three, and it says what the software is for: bringing a receiver back into use after its manufacturer stopped supporting it. The prefix does the work — this is about hardware getting a second life, not about replacing a competitor.
 
 ## Roadmap
 
@@ -37,9 +37,9 @@ Done:
 - **The stall fixes** — single-fetch API calls, timeouts on every outbound request, correct icon encoding.
 - **Thread safety** — the caches, the database connection, the station list and the per-AVR config are no longer reached unsynchronised from several request threads.
 - **Playlist resolution** (`ResolvePlaylists`, off by default) — unwraps `.m3u`, `.pls`, `.asx` and `.xspf` links to the stream behind them, for firmware that cannot follow a playlist.
-- **HTTPS relay** (`RelayHTTPS`, off by default) — a growing share of stations are HTTPS-only, and these receivers cannot do TLS. The `all-as-http` setting only rewrites the scheme and hopes the station still answers on port 80, which increasingly it does not; the relay fetches the stream and re-serves it over plain HTTP, passing on the real content type and the station's ICY metadata. Off by default deliberately: it puts Retuner in the audio path for the whole time a station is playing, which is fine on a spare machine and less welcome on a small Raspberry Pi.
+- **HTTPS relay** (`RelayHTTPS`, off by default) — a growing share of stations are HTTPS-only, and these receivers cannot do TLS. The `all-as-http` setting only rewrites the scheme and hopes the station still answers on port 80, which increasingly it does not; the relay fetches the stream and re-serves it over plain HTTP, passing on the real content type and the station's ICY metadata. Off by default deliberately: it puts Viritin in the audio path for the whole time a station is playing, which is fine on a spare machine and less welcome on a small Raspberry Pi.
 - **A stations editor in the browser** (`WebGUI`, off by default) — edit the stations list without touching files over SSH. Answers only loopback unless widened, and refuses to start without a password.
-- **A browser remote for the receiver** (`RemoteAVRAddress`, off by default) — at `/remote` on the Web GUI port. With the AVR on Internet Radio the list it is showing is Retuner's own menu, and the receiver exposes that list and the cursor keys over HTTP, so this drives Retuner's tree from a browser with a real keyboard for search instead of the on-screen character picker, and clicking a line walks the cursor to it and enters. Commands are proxied and checked against a fixed list; the receiver's own interface has no authentication, so this one sits behind `WebGUIPassword`.
+- **A browser remote for the receiver** (`RemoteAVRAddress`, off by default) — at `/remote` on the Web GUI port. With the AVR on Internet Radio the list it is showing is Viritin's own menu, and the receiver exposes that list and the cursor keys over HTTP, so this drives Viritin's tree from a browser with a real keyboard for search instead of the on-screen character picker, and clicking a line walks the cursor to it and enters. Commands are proxied and checked against a fixed list; the receiver's own interface has no authentication, so this one sits behind `WebGUIPassword`.
 - **A Home Assistant add-on** — `retuner/` packages all of this for the Home Assistant add-on store, with the options exposed in the UI and the station files in the add-on's configuration folder. See [retuner/DOCS.md](../retuner/DOCS.md).
 - **Running from a VPS** — see [REMOTE-HOSTING.md](REMOTE-HOSTING.md). Setup on the listener's side is one DNS field on the amplifier, with no router configuration and nothing extra at home.
 - **A "local stations" main menu entry** driven by the configured country.
@@ -52,8 +52,8 @@ Next:
 
 Under consideration:
 
-- **Other dead portals** — vTuner is not the only station directory that was switched off with the hardware still working. [OTHER-PORTALS.md](OTHER-PORTALS.md) surveys the rest: Reciva (the largest stranded base in the category, and no drop-in fix exists — one unsolved handshake stands in the way), the Frontier radios left without a portal when Nuvola was handed to airable in October 2024, and Pure's Flow devices. It also records what Bose SoundTouch and Squeezebox demonstrate about this model, and why the Pandora and Rhapsody entries on the same receivers can never be revived. Desk research only: no device, no captures, nothing tested against Retuner.
-- **Spotify** — playing Spotify through a receiver that has no Spotify Connect of its own. This works today with parts Retuner does not supply, and [SPOTIFY.md](SPOTIFY.md) documents the recipe: a Connect client such as [go-librespot](https://github.com/devgianlu/go-librespot) republishes playback as an Icecast stream, and Retuner presents that stream as a station. Bundling a Spotify client would tie the project's fate to an unofficial reimplementation of someone else's protocol, so the likelier direction is to make the join less manual — detect a local bridge, generate the station entry, relay track titles to the display. Music Assistant's newer Spotify pairing approach is worth studying first. Expect caveats either way: Premium is required, latency means the receiver's transport buttons cannot usefully drive playback, and Spotify has restricted these clients before.
+- **Other dead portals** — vTuner is not the only station directory that was switched off with the hardware still working. [OTHER-PORTALS.md](OTHER-PORTALS.md) surveys the rest: Reciva (the largest stranded base in the category, and no drop-in fix exists — one unsolved handshake stands in the way), the Frontier radios left without a portal when Nuvola was handed to airable in October 2024, and Pure's Flow devices. It also records what Bose SoundTouch and Squeezebox demonstrate about this model, and why the Pandora and Rhapsody entries on the same receivers can never be revived. Desk research only: no device, no captures, nothing tested against Viritin.
+- **Spotify** — playing Spotify through a receiver that has no Spotify Connect of its own. This works today with parts Viritin does not supply, and [SPOTIFY.md](SPOTIFY.md) documents the recipe: a Connect client such as [go-librespot](https://github.com/devgianlu/go-librespot) republishes playback as an Icecast stream, and Viritin presents that stream as a station. Bundling a Spotify client would tie the project's fate to an unofficial reimplementation of someone else's protocol, so the likelier direction is to make the join less manual — detect a local bridge, generate the station entry, relay track titles to the display. Music Assistant's newer Spotify pairing approach is worth studying first. Expect caveats either way: Premium is required, latency means the receiver's transport buttons cannot usefully drive playback, and Spotify has restricted these clients before.
 
 ## Building
 

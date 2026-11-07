@@ -1,31 +1,34 @@
 #!/usr/bin/with-contenv bashio
-# Turns the add-on's options into retuner.ini and starts the service.
+# Turns the add-on's options into viritin.ini and starts the service.
 #
-# retuner.ini is generated on every start, so it is not somewhere to keep hand
+# viritin.ini is generated on every start, so it is not somewhere to keep hand
 # edits -- the add-on options are. Everything a person actually curates
 # (stations, per-AVR settings, bookmarks) lives in /config, which is the add-on
 # configuration folder and is never rewritten here.
 set -e
 
-APP_DIR=/opt/retuner
-# Retuner reads its ini from the directory the binary is in, which lives in the
+APP_DIR=/opt/viritin
+# Viritin reads its ini from the directory the binary is in, which lives in the
 # container's own filesystem and is discarded whenever the add-on is updated.
 # The real file is kept in /data and linked into place.
-INI=/data/retuner.ini
-LEGACY_INI=/data/ytuner.ini
-# An add-on installed before the rename keeps its settings in ytuner.ini. Carry
-# them across rather than starting from defaults, which would not look like a
-# loss -- it would look like the configuration had been ignored.
-if [ ! -f "${INI}" ] && [ -f "${LEGACY_INI}" ]; then
-    mv "${LEGACY_INI}" "${INI}"
-    bashio::log.info "Renamed ytuner.ini to retuner.ini in /data."
+INI=/data/viritin.ini
+LEGACY_RETUNER_INI=/data/retuner.ini
+LEGACY_YTUNER_INI=/data/ytuner.ini
+# An add-on installed before the renames keeps its settings in retuner.ini or
+# ytuner.ini. Carry them across rather than starting from defaults.
+if [ ! -f "${INI}" ] && [ -f "${LEGACY_RETUNER_INI}" ]; then
+    mv "${LEGACY_RETUNER_INI}" "${INI}"
+    bashio::log.info "Renamed retuner.ini to viritin.ini in /data."
+elif [ ! -f "${INI}" ] && [ -f "${LEGACY_YTUNER_INI}" ]; then
+    mv "${LEGACY_YTUNER_INI}" "${INI}"
+    bashio::log.info "Renamed ytuner.ini to viritin.ini in /data."
 fi
 
 mkdir -p /config /data/cache /data/db
-ln -sf "${INI}" "${APP_DIR}/retuner.ini"
+ln -sf "${INI}" "${APP_DIR}/viritin.ini"
 
 # Seed the stations file on first run so there is a working example to edit.
-# avr.ini is deliberately not seeded: Retuner writes its own with no filtering,
+# avr.ini is deliberately not seeded: Viritin writes its own with no filtering,
 # while the example shipped in cfg/ carries a demonstration tag filter that
 # would hide almost every station.
 if [ ! -f /config/stations.ini ] && [ -f "${APP_DIR}/cfg/stations.ini" ]; then
@@ -152,5 +155,5 @@ if bashio::config.true 'dns_service'; then
     bashio::log.info "DNS service on port $(bashio::config 'dns_port'). If another add-on already answers DNS on this host (AdGuard Home, Pi-hole), one of the two will fail to bind."
 fi
 
-bashio::log.info "Starting Retuner on port $(bashio::config 'web_port')."
-exec "${APP_DIR}/retuner"
+bashio::log.info "Starting Viritin on port $(bashio::config 'web_port')."
+exec "${APP_DIR}/viritin"

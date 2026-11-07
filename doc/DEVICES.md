@@ -9,9 +9,9 @@ a device in hand, and what still needs someone to try it.
 
 Two things, and only two.
 
-1. **The hostname its firmware asks for** has to be one Retuner can be pointed
+1. **The hostname its firmware asks for** has to be one Viritin can be pointed
    at. That is `InterceptDNs`, or an equivalent override on your own resolver.
-2. **The request path shape** has to be one Retuner serves. There are two, and
+2. **The request path shape** has to be one Viritin serves. There are two, and
    both are covered:
 
    ```
@@ -89,16 +89,16 @@ on a real radio.
 **Out of scope: Reciva.** Grace Digital, Ocean Digital, Como Audio, Crane and
 some Sangean radios used **Reciva**, not vTuner. Reciva shut down in January
 2021 and its devices are just as dead, but the protocol is a different one and
-Retuner does not speak it. Worth knowing before you buy something second-hand
+Viritin does not speak it. Worth knowing before you buy something second-hand
 hoping this will revive it.
 
 ## How to test a device, and what to report
 
 The useful part of a report is **the hostname the device asks for**. You do not
-have to capture packets to find it — Retuner will tell you.
+have to capture packets to find it — Viritin will tell you.
 
-1. Run Retuner with `[DNSServer] Enable=1` and `MessageInfoLevel=4`.
-2. Point the device's DNS at the Retuner machine. On an AVR that usually means
+1. Run Viritin with `[DNSServer] Enable=1` and `MessageInfoLevel=4`.
+2. Point the device's DNS at the Viritin machine. On an AVR that usually means
    turning DHCP off in its network menu and entering the address by hand.
 3. Press the internet-radio button and watch the log.
 
@@ -125,7 +125,7 @@ Half the entries in the README started that way.
 
 Denon receivers of this era serve a web remote (`/NetAudio/index.html`, GoAhead)
 that drives the *receiver's* network-audio browser. When the source is Internet
-Radio that browser is showing Retuner's menu, so this is the fastest way to see
+Radio that browser is showing Viritin's menu, so this is the fastest way to see
 what an AVR actually sees without standing in front of it. `/remote` in the Web
 GUI does exactly this; what follows is what it cost to learn.
 
@@ -184,7 +184,7 @@ results for "helsinki":
 So bit 0 means selectable and bit 3 means cursor, and the line under the cursor
 on any ordinary list is `9`. Testing `chFlag = 8` therefore finds the cursor
 only on a screen whose items are *not* selectable, which is no list worth
-browsing — Retuner shipped that for one release and highlighted nothing.
+browsing — Viritin shipped that for one release and highlighted nothing.
 
 Now Playing reports `0` for every line, cursor included, since nothing there is
 selectable. Code that walks the cursor to a line has to treat "no cursor on this

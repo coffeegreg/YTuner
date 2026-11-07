@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type RetunerConfig struct {
+type ViritinConfig struct {
 	WebServerPort         int      `ini:"WebServerPort"`
 	InterceptDNs          []string `ini:"InterceptDNs"`
 	DNSAdvertiseIP        string   `ini:"DNSAdvertiseIP"`
@@ -14,25 +14,37 @@ type RetunerConfig struct {
 	CommonAVRini          bool     `ini:"CommonAVRini"`
 }
 
-func LoadRetunerConfig(path string) (*RetunerConfig, error) {
+type RetunerConfig = ViritinConfig
+
+func LoadViritinConfig(path string) (*ViritinConfig, error) {
 	cfg, err := ini.Load(path)
 	if err != nil {
 		return nil, err
 	}
 
-	retunerCfg := &RetunerConfig{
+	viritinCfg := &ViritinConfig{
 		WebServerPort:         80,
 		CommonAVRini:          true,
 	}
 
-	section := cfg.Section("Retuner")
-	retunerCfg.WebServerPort = section.Key("WebServerPort").MustInt(80)
-	retunerCfg.InterceptDNs = section.Key("InterceptDNs").Strings(",")
-	retunerCfg.DNSAdvertiseIP = section.Key("DNSAdvertiseIP").String()
-	retunerCfg.DNSRestrictForwarding = section.Key("RestrictForwarding").MustBool(false)
-	retunerCfg.CommonAVRini = section.Key("CommonAVRini").MustBool(true)
+	section := cfg.Section("Viritin")
+	if !section.HasKey("WebServerPort") {
+		section = cfg.Section("Retuner")
+	}
+	if !section.HasKey("WebServerPort") {
+		section = cfg.Section("Configuration")
+	}
+	viritinCfg.WebServerPort = section.Key("WebServerPort").MustInt(80)
+	viritinCfg.InterceptDNs = section.Key("InterceptDNs").Strings(",")
+	viritinCfg.DNSAdvertiseIP = section.Key("DNSAdvertiseIP").String()
+	viritinCfg.DNSRestrictForwarding = section.Key("RestrictForwarding").MustBool(false)
+	viritinCfg.CommonAVRini = section.Key("CommonAVRini").MustBool(true)
 
-	return retunerCfg, nil
+	return viritinCfg, nil
+}
+
+func LoadRetunerConfig(path string) (*RetunerConfig, error) {
+	return LoadViritinConfig(path)
 }
 
 type Station struct {

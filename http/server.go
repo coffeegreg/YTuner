@@ -3,7 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"retuner/vtuner"
+	"viritin/vtuner"
 	"encoding/xml"
 
 	"github.com/go-chi/chi/v5"
@@ -28,12 +28,14 @@ func (s *Server) routes() {
 	s.Router.Get("/setupapp/{vendor}/statxml.asp", s.handleStatXML)
 	s.Router.Get("/setupapp/favxml.asp", s.handleFavXML)
 
+	s.Router.Get("/viritin/mystations", s.handleMyStations)
 	s.Router.Get("/retuner/mystations", s.handleMyStations)
+	s.Router.Get("/ytuner/mystations", s.handleMyStations)
 }
 
 func (s *Server) handleDefault(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Retuner HTTP Server"))
+	w.Write([]byte("Viritin HTTP Server"))
 }
 
 func (s *Server) handleLoginXML(w http.ResponseWriter, r *http.Request) {
@@ -46,8 +48,8 @@ func (s *Server) handleLoginXML(w http.ResponseWriter, r *http.Request) {
 	page := &vtuner.Page{}
 	page.Add(vtuner.Directory{
 		Title: "My Stations",
-		UrlDir: vtuner.AddRetunerParameter("http://" + r.Host + "/retuner/mystations"),
-		UrlDirBackUp: vtuner.AddRetunerParameter("http://" + r.Host + "/retuner/mystations"),
+		UrlDir: vtuner.AddViritinParameter("http://" + r.Host + "/viritin/mystations"),
+		UrlDirBackUp: vtuner.AddViritinParameter("http://" + r.Host + "/viritin/mystations"),
 	})
 
 	xmlStr, err := page.ToXMLString()

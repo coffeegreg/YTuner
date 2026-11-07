@@ -77,14 +77,14 @@ jobs:
           target=${out_arch}-${{ matrix.os }}
 
           echo "packaging $target"
-          stage="retuner-$version-$target"
+          stage="viritin-$version-$target"
           mkdir -p "$stage/config"
           if [ "${RUNNER_OS}" = Windows ]; then
-            cp "bin/$target/retuner.exe" "$stage/"
+            cp "bin/$target/viritin.exe" "$stage/"
           else
-            cp "bin/$target/retuner" "$stage/"
+            cp "bin/$target/viritin" "$stage/"
           fi
-          cp cfg/retuner.ini "$stage/"
+          cp cfg/viritin.ini "$stage/"
           cp cfg/avr.ini cfg/stations.ini cfg/podcasts.ini "$stage/config/"
           cp LICENSE.txt README.md "$stage/"
           tar -czf "$stage.tar.gz" "$stage"

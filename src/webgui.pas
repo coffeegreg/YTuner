@@ -1,6 +1,6 @@
 unit webgui;
 
-// Retuner: browser-based editor for the "My Stations" list.
+// Viritin: browser-based editor for the "My Stations" list.
 //
 // Runs on its own listener rather than as routes on the AVR-facing web server,
 // for two reasons: that server is reachable by anything on the network (and by
@@ -24,7 +24,7 @@ const
   WEBGUI_PORT = 8090;
   WEBGUI_IPADDRESS = '127.0.0.1';
   WEBGUI_USER = 'admin';
-  WEBGUI_REALM = 'Retuner';
+  WEBGUI_REALM = 'Viritin';
 // Long enough to make guessing impractical, short enough that a typo does not
 // feel like a hang.
   WEBGUI_FAILED_AUTH_DELAY_MS = 1000;
@@ -229,7 +229,7 @@ begin
   try
     P.Add('<!doctype html><html lang="en"><head><meta charset="utf-8">');
     P.Add('<meta name="viewport" content="width=device-width,initial-scale=1">');
-    P.Add('<title>Retuner stations</title><style>');
+    P.Add('<title>Viritin stations</title><style>');
     P.Add(':root{--bg:#f6f5f2;--card:#fff;--ink:#1c2530;--soft:#5b6875;--line:#dcd8d0;--accent:#0e7d86;--danger:#b3261e}');
     P.Add('@media(prefers-color-scheme:dark){:root{--bg:#151b21;--card:#1d252d;--ink:#e6ebef;--soft:#a3aeb8;--line:#2d3742;--accent:#3fc1cb;--danger:#ff8a80}}');
     P.Add('*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}');
@@ -262,7 +262,7 @@ begin
     P.Add('td:last-child{position:absolute;top:6px;right:6px;width:auto;padding:0}');
     P.Add('}');
     P.Add('</style></head><body><div class="wrap">');
-    P.Add('<h1>Retuner</h1>');
+    P.Add('<h1>Viritin</h1>');
     P.Add('<p class="sub">My Stations &mdash; the list your receiver shows '
         + 'under that menu. Changes are written to your stations file when you '
         + 'press Save.</p>');
@@ -381,7 +381,7 @@ begin
   try
     P.Add('<!doctype html><html lang="en"><head><meta charset="utf-8">');
     P.Add('<meta name="viewport" content="width=device-width,initial-scale=1">');
-    P.Add('<title>Retuner remote</title><style>');
+    P.Add('<title>Viritin remote</title><style>');
     P.Add(':root{--bg:#f6f5f2;--card:#fff;--ink:#1c2530;--soft:#5b6875;--line:#dcd8d0;--accent:#0e7d86;--danger:#b3261e}');
     P.Add('@media(prefers-color-scheme:dark){:root{--bg:#151b21;--card:#1d252d;--ink:#e6ebef;--soft:#a3aeb8;--line:#2d3742;--accent:#3fc1cb;--danger:#ff8a80}}');
     P.Add('*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}');
@@ -400,8 +400,8 @@ begin
     P.Add('.wide{grid-column:1/4}');
     P.Add('form{display:flex;gap:8px;margin:0}input{flex:1;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}');
     P.Add('.err{color:var(--danger);font-size:14px;padding:8px 12px}');
-    P.Add('</style></head><body id="retuner-remote"><div class="wrap">');
-    P.Add('<h1>Retuner remote</h1>');
+    P.Add('</style></head><body id="viritin-remote"><div class="wrap">');
+    P.Add('<h1>Viritin remote</h1>');
     P.Add('<p class="sub">The list your receiver is showing. Click a line to go to it; arrow keys and Enter work too.</p>');
     P.Add('<div class="card"><div id="list"></div><div class="page" id="page"></div></div>');
     P.Add('<div class="card"><form id="search" autocomplete="off">');
@@ -429,14 +429,14 @@ begin
     P.Add(' pageEl.textContent=d.page||"";}');
     P.Add('function poll(){fetch("api/remote/status",{credentials:"same-origin"})');
     P.Add(' .then(function(r){return r.json();}).then(draw)');
-    P.Add(' .catch(function(){show("Cannot reach Retuner.");});}');
+    P.Add(' .catch(function(){show("Cannot reach Viritin.");});}');
     P.Add('function select(i,row){');
     P.Add(' row.classList.add("busy");');
     P.Add(' fetch("api/remote/select",{method:"POST",credentials:"same-origin",');
     P.Add('  headers:{"Content-Type":"application/json"},body:JSON.stringify({index:i})})');
     P.Add(' .then(function(r){return r.json();})');
     P.Add(' .then(function(d){if(!d.ok)show(d.error||"Refused.");setTimeout(poll,500);})');
-    P.Add(' .catch(function(){show("Cannot reach Retuner.");});}');
+    P.Add(' .catch(function(){show("Cannot reach Viritin.");});}');
     P.Add('function send(c){fetch("api/remote/cmd",{method:"POST",credentials:"same-origin",');
     P.Add(' headers:{"Content-Type":"application/json"},body:JSON.stringify({cmd:c})})');
     P.Add(' .then(function(r){return r.json();})');

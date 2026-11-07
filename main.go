@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"log"
-	"retuner/http"
-	"retuner/dns"
-	"retuner/conf"
+	"viritin/http"
+	"viritin/dns"
+	"viritin/conf"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,13 +15,13 @@ func main() {
 	var port int
 	var configPath string
 	flag.IntVar(&port, "p", 0, "Web server port")
-	flag.StringVar(&configPath, "c", "retuner.ini", "Path to configuration file")
+	flag.StringVar(&configPath, "c", "viritin.ini", "Path to configuration file")
 	flag.Parse()
 
-	cfg, err := conf.LoadRetunerConfig(configPath)
+	cfg, err := conf.LoadViritinConfig(configPath)
 	if err != nil {
 		log.Printf("Warning: failed to load config %s: %v, using defaults", configPath, err)
-		cfg = &conf.RetunerConfig{
+		cfg = &conf.ViritinConfig{
 			WebServerPort: 80,
 			InterceptDNs:  []string{"*.vtuner.com"},
 			DNSAdvertiseIP: "127.0.0.1",

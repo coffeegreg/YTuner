@@ -19,7 +19,7 @@ $ tar -xvf sqlite-autoconf-3450000.tar.gz && cd sqlite-autoconf-3450000
 ```
 $ ./configure --prefix=your_64bit_library_target_directory
 ```
-Change the `your_64bit_library_target_directory` to a directory of your choice, which Retuner will then be able to use, or select a directory appropriate for the libraries in your OS, e.g.:
+Change the `your_64bit_library_target_directory` to a directory of your choice, which Viritin will then be able to use, or select a directory appropriate for the libraries in your OS, e.g.:
 * Debian / Ubuntu / other Debian based Linux :
 
 `/usr/lib/x86_64-linux-gnu` or `/usr/lib/aarch64-linux-gnu` depends on your CPU arch. Check `gcc -dumpmachine` to find out.
@@ -58,7 +58,7 @@ If for some reason you also need the 32 bit version (if your OS supports 32 bit 
 ```
 $ ./configure --prefix=your_32bit_library_target_directory --host=your_32bit_host_param "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 ```
-Change the `your_32bit_library_target_directory` to a directory of your choice, which Retuner will then be able to use, or select a directory appropriate for the libraries in your OS, e.g.:
+Change the `your_32bit_library_target_directory` to a directory of your choice, which Viritin will then be able to use, or select a directory appropriate for the libraries in your OS, e.g.:
 * Debian / Ubuntu / other Debian based Linux :
 
 `/usr/lib/i386-linux-gnu` or `/usr/lib/arm-linux-gnueabi` or `/usr/lib/arm-linux-gnueabihf` depends on your CPU arch. Check `gcc -m32 -Q --help=target | fgrep -- -march` to find out.
@@ -85,6 +85,6 @@ Change the `your_32bit_host_param` to:
 
 `i386-pc-solaris2.11` or any others depends on your CPU arch.
 
-> ! Importanat ! : Please make sure you get right 64-bit or 32-bit library file suitable for your Retuner 64-bit or 32-bit version.
+> ! Importanat ! : Please make sure you get right 64-bit or 32-bit library file suitable for your Viritin 64-bit or 32-bit version.
 
 If you found any errors or inaccuracies in this description, please let me know.

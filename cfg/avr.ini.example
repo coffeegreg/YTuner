@@ -51,7 +51,7 @@ Protocol=all-as-http
 ;    LabelsList=Bookmarks;My Favourites;Radio Browser
 ;
 IdentifiersList=about;bookmarks;mystations;podcasts;local;radiobrowser
-LabelsList=*** Retuner ***;Favourites;My Stations;Podcasts;Local Stations;Radio Browser
+LabelsList=*** Viritin ***;Favourites;My Stations;Podcasts;Local Stations;Radio Browser
 
 [RadioBrowser Filtering]
 ; This setting works like a whitelist.

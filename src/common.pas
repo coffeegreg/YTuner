@@ -28,39 +28,42 @@ type
   end;
 
 const
-  APP_NAME = 'Retuner';
+  APP_NAME = 'Viritin';
 // CalVer: YY.MM.DD.N, N being the build within that day. The date a build was
 // cut is the useful thing to know about it -- semantic versioning would promise
 // an API this has never had.
-  APP_VERSION = '26.08.28.4';
+  APP_VERSION = '26.11.07.287';
 // The YTuner release this fork started from. Separate from APP_VERSION because
 // it means something different and does not move when we cut a build: putting
-// a Retuner version in the credit line below would attribute our releases to
+// a Viritin version in the credit line below would attribute our releases to
 // Greg P., which is the opposite of the point.
   UPSTREAM_VERSION = '1.2.6';
 // Greg P. keeps his line in the banner because nearly all of this code is his.
 // The notice in LICENSE.txt is the licence requirement; this is the courtesy
 // that ought to go with it.
-  APP_COPYRIGHT = 'a fork of YTuner '+UPSTREAM_VERSION+' by Greg P. (MIT) - https://github.com/ollisulopuisto/retuner';
+  APP_COPYRIGHT = 'a fork of YTuner '+UPSTREAM_VERSION+' by Greg P. (MIT) - https://github.com/ollisulopuisto/viritin';
 // NOT CalVer, and not tied to APP_VERSION: this is compared against the
 // INIVersion= line in every existing config file. It moves only when the config
 // format actually changes, or every install is told its file is outdated.
   INI_VERSION = '1.2.2';
 
-  RETUNER_USER_AGENT = 'Retuner';
+  VIRITIN_USER_AGENT = 'Viritin';
+  RETUNER_USER_AGENT = VIRITIN_USER_AGENT;
 
-  CONFIG_FILE_NAME = 'retuner.ini';
-// What the file was called before the rename. Renamed to the above on first
+  CONFIG_FILE_NAME = 'viritin.ini';
+// What the file was called before the renames. Renamed to the above on first
 // start so an existing install keeps its settings; see MigrateLegacyConfig.
-  CONFIG_FILE_NAME_LEGACY = 'ytuner.ini';
+  CONFIG_FILE_NAME_LEGACY = 'retuner.ini';
+  CONFIG_FILE_NAME_LEGACY_YTUNER = 'ytuner.ini';
 // Bookmark files store the host as a placeholder and get the real one put back
 // when they are read. New files are written with this.
-  BOOKMARK_HOST = 'retunerhost';
-// What files written before the rename carry. Accepted on read and never
+  BOOKMARK_HOST = 'viritinhost';
+// What files written before the renames carry. Accepted on read and never
 // written, so an AVR's existing bookmarks keep resolving and quietly convert to
 // the new placeholder the next time they are saved. See SubstHost in
 // bookmark.pas -- dropping this would orphan every bookmark already stored.
-  BOOKMARK_HOST_LEGACY = 'ytunerhost';
+  BOOKMARK_HOST_LEGACY = 'retunerhost';
+  BOOKMARK_HOST_LEGACY_YTUNER = 'ytunerhost';
 
   LOG_TYPE_MSG : array[TLogType] of string = ('','Inf','Wrn','Err','Dbg');
 

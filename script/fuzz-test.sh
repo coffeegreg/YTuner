@@ -30,7 +30,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN=${1:-}
 if [ -z "$BIN" ]; then
   # shellcheck disable=SC2012  # one glob under bin/, named by the target triple
-  BIN=$(ls "$ROOT"/bin/*/retuner 2>/dev/null | head -1) \
+  BIN=$(ls "$ROOT"/bin/*/viritin 2>/dev/null | head -1) \
     || { echo "error: no binary found; run script/build.sh first" >&2; exit 1; }
 fi
 [ -x "$BIN" ] || { echo "error: $BIN is not executable" >&2; exit 1; }
@@ -79,12 +79,12 @@ start_server() {
        "http://127.0.0.1:$2/setupapp/x/loginxml.asp?token=0" 2>/dev/null; then
     echo "error: something is already serving on port $2" >&2
     echo "       probably a server left behind by an interrupted run:" >&2
-    echo "       pkill -f 'retuner' and try again" >&2
+    echo "       pkill -f 'viritin' and try again" >&2
     exit 1
   fi
 
-  cp "$BIN" "$1/retuner"
-  ( cd "$1" && exec ./retuner -p "$PORT" > server.log 2>&1 ) &
+  cp "$BIN" "$1/viritin"
+  ( cd "$1" && exec ./viritin -p "$PORT" > server.log 2>&1 ) &
   SERVER_PID=$!
   STARTED_PIDS="$STARTED_PIDS $SERVER_PID"
   i=0
@@ -131,7 +131,7 @@ peak_rss() {
 fuzz_dns() {
   run=$WORK/dns
   mkdir -p "$run"
-  cat > "$run/retuner.ini" <<INI
+  cat > "$run/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=4
@@ -169,9 +169,9 @@ INI
   # answered here, as a subdomain and as the apex, and a name nobody intercepts
   # must not be.
   echo "The intercept list does what it says"
-  patterns=$(sed -n 's/^InterceptDNs=//p' "$ROOT/cfg/retuner.ini" | head -1)
+  patterns=$(sed -n 's/^InterceptDNs=//p' "$ROOT/cfg/viritin.ini" | head -1)
   if [ -z "$patterns" ]; then
-    bad "no InterceptDNs line found in cfg/retuner.ini"
+    bad "no InterceptDNs line found in cfg/viritin.ini"
   elif python3 "$ROOT/script/testdata/dns-intercepts.py" "$2" 127.0.0.1 "$patterns"; then
     :
   else
@@ -186,7 +186,7 @@ INI
   if cmp -s "$run/doc-domains" "$run/ini-domains"; then
     ok "doc/APPLIANCE.md lists exactly the shipped intercept set"
   else
-    bad "doc/APPLIANCE.md and cfg/retuner.ini disagree about what to intercept"
+    bad "doc/APPLIANCE.md and cfg/viritin.ini disagree about what to intercept"
     diff "$run/ini-domains" "$run/doc-domains" | sed 's/^/       /' || true
   fi
 
@@ -236,7 +236,7 @@ fuzz_images() {
     echo "loop.png=http://127.0.0.1:$2/stream.mp3|http://127.0.0.1:$2/loop.png"
   } > "$run/stations.ini"
 
-  cat > "$run/retuner.ini" <<INI
+  cat > "$run/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=1
@@ -257,7 +257,7 @@ INI
   echo "Hostile station logos on port $1"
 
   curl -fsS --noproxy '*' -o "$WORK/stations.xml" \
-    "http://127.0.0.1:$1/retuner/mystations/Fuzz?mac=aabbccddee" 2>/dev/null || true
+    "http://127.0.0.1:$1/viritin/mystations/Fuzz?mac=aabbccddee" 2>/dev/null || true
   tr '<' '\n' < "$WORK/stations.xml" \
     | sed -n 's/.*[?&]id=\(MS_[0-9A-F]*\).*/\1/p' | sort -u > "$WORK/icon-ids"
   count=$(wc -l < "$WORK/icon-ids" | tr -d ' ')
@@ -270,7 +270,7 @@ INI
 
   while read -r id; do
     curl -s --noproxy '*' --max-time 20 -o /dev/null \
-      "http://127.0.0.1:$1/retuner/icon?id=$id" || true
+      "http://127.0.0.1:$1/viritin/icon?id=$id" || true
   done < "$WORK/icon-ids"
 
   if kill -0 "$SERVER_PID" 2>/dev/null; then
@@ -298,7 +298,7 @@ INI
     | sed -n 's/.*[?&]id=\(MS_[0-9A-F]*\).*/\1/p' | head -1)
   if [ -n "$valid_id" ] \
     && curl -fsS --noproxy '*' -o "$WORK/valid.out" \
-         "http://127.0.0.1:$1/retuner/icon?id=$valid_id" 2>/dev/null \
+         "http://127.0.0.1:$1/viritin/icon?id=$valid_id" 2>/dev/null \
     && [ -s "$WORK/valid.out" ]; then
     ok "a well-formed logo is still converted and served"
   else
@@ -316,7 +316,7 @@ hostile_ids() {
   mkdir -p "$run/cache"
   printf 'SECRET-MARKER\n' > "$run/secret.txt"
   printf 'SECRET-MARKER\n' > "$run/cache/MS_AAAAAAAAAAAA"
-  cat > "$run/retuner.ini" <<INI
+  cat > "$run/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=1
@@ -338,7 +338,7 @@ INI
             '/etc/hostname' '%2Fetc%2Fhostname' '../../../../etc/hostname' \
             'MS_AAAAAAAAAAAA/../../secret.txt' '.%2E/secret.txt'; do
     body=$(curl -s --noproxy '*' --max-time 10 \
-      "http://127.0.0.1:$1/retuner/icon?id=$id" 2>/dev/null || true)
+      "http://127.0.0.1:$1/viritin/icon?id=$id" 2>/dev/null || true)
     case $body in
       *SECRET-MARKER*|*localhost*)
         bad "id '$id' read a file outside the cache" ;;
@@ -348,7 +348,7 @@ INI
   done
   # The cache itself is still allowed to answer: the fix must not turn the
   # cache off, only keep the key inside it.
-  body=$(curl -s --noproxy '*' "http://127.0.0.1:$1/retuner/icon?id=MS_AAAAAAAAAAAA" 2>/dev/null || true)
+  body=$(curl -s --noproxy '*' "http://127.0.0.1:$1/viritin/icon?id=MS_AAAAAAAAAAAA" 2>/dev/null || true)
   case $body in
     *SECRET-MARKER*) ok "an ordinary id still reads its own cache entry" ;;
     *) bad "the cache stopped answering for an ordinary name" ;;
@@ -369,7 +369,7 @@ INI
 hostile_macs() {
   run=$WORK/macs
   mkdir -p "$run/config"
-  cat > "$run/retuner.ini" <<INI
+  cat > "$run/viritin.ini" <<INI
 [Configuration]
 INIVersion=1.2.2
 MessageInfoLevel=1
@@ -398,21 +398,21 @@ INI
   start_server "$run" "$1"
   echo "MACs that are not MACs"
   for mac in '../escaped' '..%2Fescaped' '....//escaped' '../../escaped' \
-             '/tmp/retuner-escaped' '%2Ftmp%2Fretuner-escaped'; do
+             '/tmp/viritin-escaped' '%2Ftmp%2Fviritin-escaped'; do
     curl -fsS --noproxy '*' --max-time 10 -o /dev/null \
       "http://127.0.0.1:$1/setupapp/x/loginxml.asp?mac=$mac" 2>/dev/null || true
   done
   # Anything written outside config/ is the failure. The config directory is
   # allowed to fill up with junk; escaping it is not.
-  escaped=$(find "$run" -maxdepth 1 -name '*.ini' -not -name 'retuner.ini' 2>/dev/null | wc -l)
-  escaped=$((escaped + $(find /tmp -maxdepth 1 -name 'retuner-escaped.ini' 2>/dev/null | wc -l)))
+  escaped=$(find "$run" -maxdepth 1 -name '*.ini' -not -name 'viritin.ini' 2>/dev/null | wc -l)
+  escaped=$((escaped + $(find /tmp -maxdepth 1 -name 'viritin-escaped.ini' 2>/dev/null | wc -l)))
   if [ "$escaped" -eq 0 ]; then
     ok "no config file was written outside the config directory"
   else
     bad "$escaped file(s) were written outside the config directory"
-    find "$run" -maxdepth 1 -name '*.ini' -not -name 'retuner.ini' | sed 's/^/       /'
-    find /tmp -maxdepth 1 -name 'retuner-escaped.ini' | sed 's/^/       /'
-    rm -f /tmp/retuner-escaped.ini
+    find "$run" -maxdepth 1 -name '*.ini' -not -name 'viritin.ini' | sed 's/^/       /'
+    find /tmp -maxdepth 1 -name 'viritin-escaped.ini' | sed 's/^/       /'
+    rm -f /tmp/viritin-escaped.ini
   fi
 
   # The mode still has to work: a receiver with a plausible identifier gets its
